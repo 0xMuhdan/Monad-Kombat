@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Monad Kombat // Fighter Station</title><link rel="stylesheet" href="monad-kombat-theme.css"><script src="fighter-registry.js"></script>
+  <style>
+    @font-face{font-family:Rajdhani;src:url('assets/fonts/Rajdhani-Medium.ttf')}@font-face{font-family:Rajdhani;src:url('assets/fonts/Rajdhani-Bold.ttf');font-weight:700}
+    :root{font-family:Rajdhani,sans-serif;color:#edf7ff;background:#050812;--cyan:#5cf4e5;--blue:#6aa7ff;--orange:#ff9d54;--panel:#0b1425e8;--muted:#8da8bd}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 82% 12%,#173b6a55,transparent 35%),linear-gradient(135deg,#050812,#0a1427);overflow-x:hidden}body:before{content:'';position:fixed;inset:0;pointer-events:none;opacity:.18;background:repeating-linear-gradient(0deg,transparent 0 4px,#5cf4e514 4px 5px),linear-gradient(115deg,transparent 0 48%,#6aa7ff12 48% 49%,transparent 49%)}main{width:min(1180px,92%);margin:0 auto;padding:38px 0 60px}.topbar{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #5cf4e566;padding-bottom:22px}.brand{font-size:28px;font-weight:700;font-style:italic;letter-spacing:3px}.brand span{color:var(--cyan);letter-spacing:7px}.eyebrow{color:var(--orange);font-size:12px;letter-spacing:3px;font-weight:700}.status{color:var(--cyan);font-size:12px;letter-spacing:2px}.hero{display:flex;justify-content:space-between;align-items:end;padding:58px 0 34px}.hero h1{font-size:clamp(42px,7vw,88px);line-height:.85;margin:8px 0 0;letter-spacing:2px}.hero h1 em{font-style:normal;color:var(--cyan)}.hero p{color:var(--muted);font-size:18px;letter-spacing:1px}.wallet{font-size:13px;color:#c7d9e9;text-align:right}.wallet code{display:block;color:var(--cyan);margin-top:6px}.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}.panel{background:var(--panel);border:1px solid #537a9b88;padding:22px;box-shadow:0 15px 45px #0005}.panel h2{margin:0 0 18px;font-size:24px;letter-spacing:2px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.stat{border-left:2px solid var(--cyan);background:#10213a99;padding:14px}.stat b{display:block;font-size:34px;color:#f3fbff}.stat span{color:var(--muted);font-size:11px;letter-spacing:2px}.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.action{border:1px solid var(--cyan);background:linear-gradient(110deg,#16404c,#1b2f55);color:#efffff;padding:17px;text-align:left;font:700 17px Rajdhani;cursor:pointer}.action:hover{background:linear-gradient(110deg,#2cbcae,#3c77cf);color:#03121b}.history{color:var(--muted);min-height:68px}.leaderboard{width:100%;border-collapse:collapse}.leaderboard td{padding:9px 4px;border-bottom:1px solid #537a9b44}.leaderboard td:last-child{text-align:right;color:var(--cyan)}.hidden{display:none}.error{color:#ff9d54;text-align:center;margin:24px}.login{width:min(460px,92%);margin:12vh auto}.form{display:grid;gap:12px}.form input{background:#081324;border:1px solid #537a9b;color:#fff;padding:13px;font:16px Rajdhani}.form button{border:1px solid var(--cyan);background:var(--cyan);color:#04131c;padding:13px;font:700 17px Rajdhani;cursor:pointer}.warning{color:#ffbd83;font-size:13px}.logout{border:1px solid #5c7690;background:transparent;color:#c7d9e9;padding:7px 12px;font:14px Rajdhani;cursor:pointer}@media(max-width:720px){main{padding-top:22px}.hero{display:block;padding:38px 0 24px}.wallet{text-align:left;margin-top:22px}.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}.stat b{font-size:27px}.topbar{align-items:start}.brand{font-size:22px}}
+  </style>
+</head>
+<body>
+<main>
+  <section id="login" class="login panel">
+    <div class="eyebrow">THE BOUND CIRCUIT // PROFILE ACCESS</div><h1>Enter the <em>Grid</em></h1>
+    <form class="form" id="login-form"><input id="name" placeholder="Nama fighter" minlength="2" maxlength="20" required><input id="pin" type="password" inputmode="numeric" pattern="[0-9]{4,8}" placeholder="PIN 4-8 digit" required><button>CREATE PROFILE / LOGIN</button></form>
+    <div style="display:flex;align-items:center;gap:12px;margin:18px 0 14px"><hr style="flex:1;border:0;border-top:1px solid #537a9b44"><span style="font-size:11px;color:var(--muted);letter-spacing:2px">OR WEB3 NATIVE</span><hr style="flex:1;border:0;border-top:1px solid #537a9b44"></div>
+    <button id="connect-wallet-btn" type="button" style="width:100%;border:1px solid #836ef9;background:linear-gradient(135deg,#836ef9,#5035e0);color:#fff;padding:13px;font:700 16px Rajdhani;letter-spacing:2px;cursor:pointer">CONNECT METAMASK / MONAD</button>
+    <p class="warning">Temporary or Monad Testnet identity. Do not deposit real funds.</p><p id="login-error" class="error"></p>
+  </section>
+  <section id="dashboard" class="hidden">
+    <header class="topbar"><div class="brand">MONAD <span>KOMBAT</span></div><div><span class="status">MONAD TESTNET // ONLINE</span> <button class="logout" id="logout">LOG OUT</button></div></header>
+    <section class="hero"><div><div class="eyebrow">PILOT PROFILE // MONAD KOMBAT</div><h1 id="username">MONAD KOMBAT</h1><p>Your transaction is your weapon. A community powered fighting game where every on-chain transaction can change the battle.</p></div><div class="wallet">MONAD TESTNET WALLET<code id="wallet"></code><a id="wallet-explorer" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-top:6px;color:#836ef9;font-size:11px;letter-spacing:1px;text-decoration:none">VIEW ON MONAD EXPLORER ↗</a></div></section>
+    <section class="grid"><article class="panel"><h2>COMBAT RECORD</h2><div class="stats"><div class="stat"><b id="wins">0</b><span>WINS</span></div><div class="stat"><b id="losses">0</b><span>LOSSES</span></div><div class="stat"><b id="eliminations">0</b><span>ELIMINATIONS</span></div></div><h2 style="margin-top:28px">ROOM ACTIONS</h2><div class="actions"><button class="action" id="create-room">CREATE ROOM <small>Generate a private code</small></button><button class="action" id="join-room">JOIN ROOM <small>Enter a six-character code</small></button><button class="action" id="offline">PLAY OFFLINE <small>Practice without a server</small></button></div></article><article class="panel"><h2>LEADERBOARD</h2><table class="leaderboard"><tbody id="leaderboard"></tbody></table></article><article class="panel"><h2>MATCH HISTORY</h2><div id="history" class="history">No matches recorded yet.</div></article></section>
+  </section>
+</main>
+<script>
+const api='http://localhost:2567';let token=localStorage.getItem('blitzbound.session');
+const $=id=>document.getElementById(id);const show=(id,on)=>$(id).classList.toggle('hidden',!on);
+async function request(path,options={}){const response=await fetch(api+path,{...options,headers:{'content-type':'application/json',...(token?{authorization:'Bearer '+token}:{}),...(options.headers||{})}});const data=response.status===204?null:await response.json();if(!response.ok)throw new Error(data?.error||'request_failed');return data;}
+async function loadDashboard(){const data=await request('/api/dashboard');const p=data.profile;$('username').textContent=p.username;$('wallet').textContent=p.walletAddress;const exp=$('wallet-explorer');if(exp&&p.walletAddress){exp.href='https://testnet.monadexplorer.com/address/'+p.walletAddress;exp.style.display='inline-block';}$('wins').textContent=p.wins;$('losses').textContent=p.losses;$('eliminations').textContent=p.eliminations;$('leaderboard').innerHTML=data.leaderboard.map((x,i)=>`<tr><td>${i+1}. ${x.username}</td><td>${x.wins} W / ${x.eliminations} K</td></tr>`).join('')||'<tr><td>No pilots yet</td></tr>';$('history').innerHTML=data.history.length?data.history.map(item=>`<div>${item.result.toUpperCase()} · ${item.fighterId?(window.BLITZBOUND_FIGHTERS?.[item.fighterId]?.name||item.fighterId):'SQUAD'} · ${item.code} · ${new Date(item.savedAt).toLocaleString()}</div>`).join(''):'No matches recorded yet.';show('login',false);show('dashboard',true);}
+$('login-form').onsubmit=async e=>{e.preventDefault();$('login-error').textContent='';const name=$('name').value.trim();const pin=$('pin').value.trim();try{let result;try{result=await request('/api/login',{method:'POST',body:JSON.stringify({username:name,pin:pin})});}catch(err){if(err.message==='invalid_pin'){throw new Error('PIN salah! Nama karakter ini sudah terdaftar, masukkan PIN yang sesuai.');}const created=await request('/api/profile',{method:'POST',body:JSON.stringify({name:name,pin:pin})});result=await request('/api/login',{method:'POST',body:JSON.stringify({username:created.profile.username,pin:pin})});}token=result.token;localStorage.setItem('blitzbound.session',token);localStorage.setItem('blitzbound.playerId',result.profile.playerId);await loadDashboard();}catch(error){$('login-error').textContent=error.message;}};
+$('connect-wallet-btn').onclick=async()=>{
+  $('login-error').textContent='';
+  if(!window.ethereum){$('login-error').textContent='MetaMask not detected. Please install MetaMask to use Web3 login.';return;}
+  try{
+    const accounts=await window.ethereum.request({method:'eth_requestAccounts'});
+    const walletAddress=accounts[0];
+    try{await window.ethereum.request({method:'wallet_switchEthereumChain',params:[{chainId:'0x279f'}]});}
+    catch(switchError){
+      if(switchError.code===4902){
+        await window.ethereum.request({method:'wallet_addEthereumChain',params:[{chainId:'0x279f',chainName:'Monad Testnet',nativeCurrency:{name:'MON',symbol:'MON',decimals:18},rpcUrls:['https://testnet-rpc.monad.xyz'],blockExplorerUrls:['https://testnet.monadexplorer.com']}]});
+      }
+    }
+    const result=await request('/api/wallet-login',{method:'POST',body:JSON.stringify({walletAddress})});
+    token=result.token;
+    localStorage.setItem('blitzbound.session',token);
+    localStorage.setItem('blitzbound.playerId',result.profile.playerId);
+    await loadDashboard();
+  }catch(err){$('login-error').textContent=err.message||'Failed to connect MetaMask';}
+};
+$('logout').onclick=async()=>{try{await request('/api/logout',{method:'POST'});}finally{localStorage.removeItem('blitzbound.session');token=null;show('dashboard',false);show('login',true);}};$('offline').onclick=()=>location.href='offline-lab.html';$('create-room').onclick=async()=>{try{const result=await request('/api/rooms',{method:'POST',body:JSON.stringify({mode:'1v1'})});location.href='lobby.html?code='+result.room.code;}catch(error){alert(error.message);}};$('join-room').onclick=()=>{location.href='join.html';};
+const intent=location.hash.slice(1);if(intent==='create')setTimeout(()=>document.getElementById('create-room')?.click(),0);if(intent==='join')setTimeout(()=>document.getElementById('join-room')?.click(),0);if(token)loadDashboard().catch(()=>{localStorage.removeItem('blitzbound.session');token=null;});
+</script>
+</body>
+</html>
+
+<style>
+/* Full Signal Station layout pass: preserve IDs/API, replace the reference menu language. */
+body{background:#101311!important;background-image:linear-gradient(130deg,#101311,#202920 58%,#38251e)!important}.topbar{height:78px!important;padding:0 4%!important;border-bottom:1px solid #d9e85b66!important}.brand{letter-spacing:4px!important}.brand span{color:#d9e85b!important}.status{color:#d9e85b!important}.hero{min-height:38vh!important;padding:45px 0 30px!important}.hero h1{font-size:clamp(52px,8vw,112px)!important;letter-spacing:3px!important;text-transform:uppercase}.hero p{max-width:520px!important;color:#a8aa91!important}.wallet{border-left:2px solid #e36f3d;padding-left:18px;text-align:left!important}.grid{grid-template-columns:1.4fr .6fr!important;gap:16px!important}.panel{border:1px solid #a8aa9166!important;background:#1b211dea!important;box-shadow:0 18px 50px #0008!important}.panel h2{font-size:18px!important;letter-spacing:4px!important;color:#d9e85b!important;text-transform:uppercase}.stat{border-left:2px solid #d9e85b!important;background:#252c26!important}.stat b{color:#f2ead7!important}.action{border:1px solid #a8aa9166!important;background:linear-gradient(135deg,#252c26,#29251f)!important}.action:hover{background:linear-gradient(135deg,#d9e85b,#a6b23e)!important;color:#111511!important}.action small{display:block!important}.leaderboard td:last-child{color:#d9e85b!important}
+</style>
+
+<style>.dashboard-refresh{border:1px solid #a8aa9166;background:#252c26;color:#d9e85b;padding:7px 12px;font:700 13px Rajdhani;cursor:pointer;margin-right:8px}.dashboard-refresh:hover{border-color:#d9e85b}</style>
+<script>document.querySelector('#logout')?.insertAdjacentHTML('beforebegin','<button class="dashboard-refresh" id="refresh-dashboard">REFRESH</button>');document.querySelector('#refresh-dashboard')?.addEventListener('click',()=>loadDashboard().catch(error=>alert(error.message)));document.addEventListener('visibilitychange',()=>{if(!document.hidden&&token)loadDashboard().catch(()=>{})});</script>
+
+<style>
+/* Responsive station layout: fit the dashboard on desktop without harming mobile scrolling. */
+@media (min-width:1000px) and (min-height:700px){
+  body{min-height:100dvh;overflow:hidden!important}
+  main{width:min(1180px,92%);height:100dvh;padding:22px 0 24px;display:flex;flex-direction:column}
+  #dashboard{min-height:0;display:flex;flex-direction:column;flex:1}
+  #dashboard.hidden{display:none}
+  .topbar{padding-bottom:14px;flex:0 0 auto}
+  .hero{min-height:0!important;padding:28px 0 20px!important;flex:0 0 auto}
+  .hero h1{font-size:clamp(42px,5.5vw,72px)!important}
+  .hero p{font-size:15px!important;margin:10px 0 0;max-width:520px}
+  .wallet{font-size:12px}
+  .grid{grid-template-columns:1.35fr .65fr;grid-template-rows:1fr 1fr;gap:12px;min-height:0;flex:1}
+  .grid article{min-height:0;padding:16px;overflow:hidden}
+  .grid article:first-child{grid-row:span 2}
+  .panel h2{margin-bottom:12px;font-size:17px!important}
+  .stats{gap:8px}.stat{padding:10px}.stat b{font-size:27px}
+  .action{padding:13px;font-size:15px}.action small{font-size:10px;margin-top:6px}
+  .history{min-height:0;overflow:auto;font-size:12px}
+  .leaderboard{font-size:12px}
+}
+@media (min-width:721px) and (max-width:999px){
+  main{padding-top:24px}.hero{padding:34px 0 24px}.hero h1{font-size:clamp(44px,7vw,70px)}
+  .grid{gap:12px}.panel{padding:16px}.panel h2{font-size:18px}.action{padding:13px;font-size:15px}
+}
+@media (max-width:720px){
+  body{overflow-x:hidden}.hero{padding:28px 0 20px!important}.hero h1{font-size:clamp(44px,13vw,72px)!important}.hero p{font-size:15px!important}
+  .grid{gap:12px}.panel{padding:16px}.panel h2{font-size:17px!important}.action{padding:13px;font-size:15px}
+}
+</style>
+
+<style>
+/* Strict desktop viewport fit for the dashboard landing screen. */
+@media (min-width:1000px) and (min-height:700px){
+  html,body{height:100%;overflow:hidden!important}
+  main{height:100dvh;padding:14px 0 16px!important}
+  .topbar{padding-bottom:10px!important}.brand{font-size:23px}.status{font-size:10px}
+  .hero{padding:18px 0 14px!important;min-height:0!important}.hero h1{font-size:clamp(38px,5vw,64px)!important}.hero p{font-size:14px!important;margin:7px 0 0!important;max-width:500px}
+  .wallet{font-size:11px}.wallet code{margin-top:3px}
+  .grid{gap:10px!important;grid-template-rows:1fr 1fr;flex:1;min-height:0}
+  .grid article{padding:13px!important;min-height:0!important}.panel h2{font-size:15px!important;margin-bottom:8px!important}
+  .stats{gap:6px}.stat{padding:7px!important}.stat b{font-size:23px!important}.stat span{font-size:9px}
+  .actions{gap:7px}.action{padding:9px!important;font-size:13px!important}.action small{font-size:9px!important;margin-top:3px!important}
+  .leaderboard{font-size:11px}.leaderboard td{padding:5px 3px}
+  .history{font-size:11px;line-height:1.3;min-height:0}
+}
+@media (min-width:1000px) and (max-height:700px){
+  main{padding-top:8px!important;padding-bottom:8px!important}.hero{padding:10px 0 8px!important}.hero h1{font-size:38px!important}.hero p{font-size:12px!important}.grid article{padding:9px!important}.panel h2{font-size:13px!important}.stat b{font-size:19px!important}.action{min-height:54px!important;font-size:11px!important}.action small{display:none!important}
+}
+</style>

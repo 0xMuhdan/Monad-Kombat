@@ -1,0 +1,121 @@
+{
+  "pbtResults": {
+    "1. Write the bug condition exploration test": {
+      "status": "passed",
+      "failingExample": "Node test counterexample: after confirmed AERO, an older polling snapshot with VEX produced authoritativeFighterId='vex', rosterSelectionId='vex', preview.fighterId='vex', preview.name='VEX', preview.alignment='COREBOUND', preview.asset='assets/menu/arco-select.webp' instead of AERO / assets/menu/isolde-select.webp. Test summary: 1 passed, 1 failed (expected unfixed behavior).",
+      "lastRunTimestamp": 1792458709438
+    },
+    "2. Write preservation property tests before implementing the fix": {
+      "status": "passed",
+      "lastRunTimestamp": 1792458978478
+    },
+    "3.4 Verify accepted selection behavior with the existing exploration test": {
+      "status": "passed",
+      "lastRunTimestamp": 1792459852279
+    },
+    "3.5 Verify preservation behavior with the existing preservation tests": {
+      "status": "passed",
+      "lastRunTimestamp": 1792459983807
+    }
+  },
+  "executionHistory": {
+    "1. Write the bug condition exploration test": [
+      {
+        "executionId": "732a89f9-91d1-4418-9158-482677b1c822",
+        "chatSessionId": "sess_641be543-2a85-43e6-b53c-8a89bc122d9f",
+        "timestamp": 1792458597008
+      },
+      {
+        "executionId": "732a89f9-91d1-4418-9158-482677b1c822",
+        "chatSessionId": "sess_641be543-2a85-43e6-b53c-8a89bc122d9f",
+        "timestamp": 1792458751346
+      }
+    ],
+    "2. Write preservation property tests before implementing the fix": [
+      {
+        "executionId": "732a89f9-91d1-4418-9158-482677b1c822",
+        "chatSessionId": "sess_641be543-2a85-43e6-b53c-8a89bc122d9f",
+        "timestamp": 1792458773204
+      },
+      {
+        "executionId": "732a89f9-91d1-4418-9158-482677b1c822",
+        "chatSessionId": "sess_641be543-2a85-43e6-b53c-8a89bc122d9f",
+        "timestamp": 1792459048314
+      }
+    ],
+    "3.1 Establish one confirmed room-state pipeline in `lobby.html`": [
+      {
+        "executionId": "732a89f9-91d1-4418-9158-482677b1c822",
+        "chatSessionId": "sess_641be543-2a85-43e6-b53c-8a89bc122d9f",
+        "timestamp": 1792459068642
+      },
+      {
+        "executionId": "732a89f9-91d1-4418-9158-482677b1c822",
+        "chatSessionId": "sess_641be543-2a85-43e6-b53c-8a89bc122d9f",
+        "timestamp": 1792459490459
+      }
+    ],
+    "3.2 Render the preview and roster from one canonical selection view model": [
+      {
+        "executionId": "732a89f9-91d1-4418-9158-482677b1c822",
+        "chatSessionId": "sess_641be543-2a85-43e6-b53c-8a89bc122d9f",
+        "timestamp": 1792459511688
+      },
+      {
+        "executionId": "732a89f9-91d1-4418-9158-482677b1c822",
+        "chatSessionId": "sess_641be543-2a85-43e6-b53c-8a89bc122d9f",
+        "timestamp": 1792459592678
+      }
+    ],
+    "3.3 Preserve confirmed state on rejected fighter actions": [
+      {
+        "executionId": "732a89f9-91d1-4418-9158-482677b1c822",
+        "chatSessionId": "sess_641be543-2a85-43e6-b53c-8a89bc122d9f",
+        "timestamp": 1792459627737
+      },
+      {
+        "executionId": "732a89f9-91d1-4418-9158-482677b1c822",
+        "chatSessionId": "sess_641be543-2a85-43e6-b53c-8a89bc122d9f",
+        "timestamp": 1792459716511
+      }
+    ],
+    "3.4 Verify accepted selection behavior with the existing exploration test": [
+      {
+        "executionId": "732a89f9-91d1-4418-9158-482677b1c822",
+        "chatSessionId": "sess_641be543-2a85-43e6-b53c-8a89bc122d9f",
+        "timestamp": 1792459739193
+      }
+    ],
+    "3.5 Verify preservation behavior with the existing preservation tests": [
+      {
+        "executionId": "732a89f9-91d1-4418-9158-482677b1c822",
+        "chatSessionId": "sess_641be543-2a85-43e6-b53c-8a89bc122d9f",
+        "timestamp": 1792459907506
+      },
+      {
+        "executionId": "732a89f9-91d1-4418-9158-482677b1c822",
+        "chatSessionId": "sess_641be543-2a85-43e6-b53c-8a89bc122d9f",
+        "timestamp": 1792460010190
+      }
+    ],
+    "3. Implement the authoritative, canonical lobby selection fix": [
+      {
+        "executionId": "732a89f9-91d1-4418-9158-482677b1c822",
+        "chatSessionId": "sess_641be543-2a85-43e6-b53c-8a89bc122d9f",
+        "timestamp": 1792460010369
+      }
+    ],
+    "4. Checkpoint - Validate the complete bugfix": [
+      {
+        "executionId": "732a89f9-91d1-4418-9158-482677b1c822",
+        "chatSessionId": "sess_641be543-2a85-43e6-b53c-8a89bc122d9f",
+        "timestamp": 1792460031388
+      },
+      {
+        "executionId": "732a89f9-91d1-4418-9158-482677b1c822",
+        "chatSessionId": "sess_641be543-2a85-43e6-b53c-8a89bc122d9f",
+        "timestamp": 1792460188040
+      }
+    ]
+  }
+}

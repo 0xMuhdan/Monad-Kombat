@@ -1,0 +1,27 @@
+/* Stable backend IDs with Blitzbound-facing names and assets. */
+window.BLITZBOUND_FIGHTERS = Object.freeze({
+  vex: { name: 'VEX', alignment: 'COREBOUND', portrait: 'assets/ui/arco-avatar.webp', atlas: 'assets/mecha/run/sprite-sheet-alpha.webp' },
+  rift: { name: 'RIFT', alignment: 'FERALBOUND', portrait: 'assets/fenr/ui/portrait-human.webp', atlas: 'assets/fenr/human/run/sprite-sheet-alpha.webp' },
+  nova: { name: 'NOVA', alignment: 'COREBOUND', portrait: 'assets/mira/ui/portrait.webp', atlas: 'assets/mira/run/sprite-sheet-alpha.webp' },
+  nox: { name: 'NOX', alignment: 'FERALBOUND', portrait: 'assets/cora/ui/portrait.webp', atlas: 'assets/cora/run/sprite-sheet-alpha.webp' },
+  sable: { name: 'SABLE', alignment: 'FERALBOUND', portrait: 'assets/naja/ui/portrait.webp', atlas: 'assets/naja/run/sprite-sheet-alpha.webp' },
+  forge: { name: 'FORGE', alignment: 'COREBOUND', portrait: 'assets/haldor/ui/portrait.webp', atlas: 'assets/haldor/run/sprite-sheet-alpha.webp' },
+  jinx: { name: 'JINX', alignment: 'COREBOUND', portrait: 'assets/zanni/ui/portrait.webp', atlas: 'assets/zanni/run/sprite-sheet-alpha.webp' },
+  aero: { name: 'AERO', alignment: 'COREBOUND', portrait: 'assets/isolde/ui/portrait.webp', atlas: 'assets/isolde/run/sprite-sheet-alpha.webp' },
+  orbit: { name: 'ORBIT', alignment: 'COREBOUND', portrait: 'assets/rhea/ui/portrait.webp', atlas: 'assets/rhea/run/sprite-sheet-alpha.webp' },
+  ember: { name: 'EMBER', alignment: 'FERALBOUND', portrait: 'assets/solan/ui/portrait.webp', atlas: 'assets/solan/run/sprite-sheet-alpha.webp' },
+  kite: { name: 'KITE', alignment: 'FERALBOUND', portrait: 'assets/nib/ui/portrait.webp', atlas: 'assets/nib/run/sprite-sheet-alpha.webp' },
+  moss: { name: 'MOSS', alignment: 'FERALBOUND', portrait: 'assets/edda/ui/portrait.webp', atlas: 'assets/edda/run/sprite-sheet-alpha.webp' },
+  arco: { name: 'VEX', alignment: 'COREBOUND', portrait: 'assets/ui/arco-avatar.webp', atlas: 'assets/mecha/run/sprite-sheet-alpha.webp' },
+  fenr: { name: 'RIFT', alignment: 'FERALBOUND', portrait: 'assets/fenr/ui/portrait-human.webp', atlas: 'assets/fenr/human/run/sprite-sheet-alpha.webp' },
+  mira: { name: 'NOVA', alignment: 'COREBOUND', portrait: 'assets/mira/ui/portrait.webp', atlas: 'assets/mira/run/sprite-sheet-alpha.webp' },
+  cora: { name: 'NOX', alignment: 'FERALBOUND', portrait: 'assets/cora/ui/portrait.webp', atlas: 'assets/cora/run/sprite-sheet-alpha.webp' },
+  naja: { name: 'SABLE', alignment: 'FERALBOUND', portrait: 'assets/naja/ui/portrait.webp', atlas: 'assets/naja/run/sprite-sheet-alpha.webp' },
+  haldor: { name: 'FORGE', alignment: 'COREBOUND', portrait: 'assets/haldor/ui/portrait.webp', atlas: 'assets/haldor/run/sprite-sheet-alpha.webp' },
+  zanni: { name: 'JINX', alignment: 'COREBOUND', portrait: 'assets/zanni/ui/portrait.webp', atlas: 'assets/zanni/run/sprite-sheet-alpha.webp' },
+  isolde: { name: 'AERO', alignment: 'COREBOUND', portrait: 'assets/isolde/ui/portrait.webp', atlas: 'assets/isolde/run/sprite-sheet-alpha.webp' },
+  rhea: { name: 'ORBIT', alignment: 'COREBOUND', portrait: 'assets/rhea/ui/portrait.webp', atlas: 'assets/rhea/run/sprite-sheet-alpha.webp' },
+  solan: { name: 'EMBER', alignment: 'FERALBOUND', portrait: 'assets/solan/ui/portrait.webp', atlas: 'assets/solan/run/sprite-sheet-alpha.webp' },
+  nib: { name: 'KITE', alignment: 'FERALBOUND', portrait: 'assets/nib/ui/portrait.webp', atlas: 'assets/nib/run/sprite-sheet-alpha.webp' },
+  edda: { name: 'MOSS', alignment: 'FERALBOUND', portrait: 'assets/edda/ui/portrait.webp', atlas: 'assets/edda/run/sprite-sheet-alpha.webp' }
+});

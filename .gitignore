@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+server/node_modules/
+
+# Build artifacts
+dist/
+server/dist/
+
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+server/.env
+server/.env.*
+!server/.env.example
+
+# Runtime and local storage
+server/data/
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
+.kiro/sprite-gen/
