@@ -14,11 +14,7 @@
 
 <br/>
 
-<img src="game-docs/screenshots/menu.jpg" alt="Monad Kombat Title Screen" width="900" style="border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
-
-<br/><br/>
-
-[🕹️ Live Demo](https://monad-kombat.vercel.app) • [📖 Documentation](#-architecture) • [🥊 Fighter Roster](#-the-12-champions) • [⛓️ On-Chain Settlement](#-on-chain-proof-of-fight) • [🚀 Quick Start](#-quick-start)
+[🕹️ Live Demo](https://monad-kombat.vercel.app) • [📖 Architecture](#-architecture-hybrid-web3-netcode) • [🥊 Fighter Roster](#-the-12-champions) • [⛓️ On-Chain Settlement](#-on-chain-proof-of-fight) • [🚀 Quick Start](#-quick-start-guide)
 
 </div>
 
@@ -36,33 +32,6 @@ By harnessing **Monad’s 10,000 TPS, 1-second block times, and sub-second trans
 - **Proof-of-Fight™ Settlement**: Match results, eliminations, winner/loser wallet addresses, and timestamps are sealed directly on Monad Testnet via `MonadKombatArena.sol` the moment the final K.O. lands.
 
 > *"In Monad Kombat, speed is not a feature — it's survival."*
-
----
-
-## 🎮 Gameplay & Visual Showcase
-
-<table>
-  <tr>
-    <td width="50%">
-      <img src="game-docs/screenshots/roster.jpg" alt="Fighter Selection Screen" width="100%"/>
-      <p align="center"><b>Dynamic Roster Dock</b><br/><i>12 unique cyber-champions with real-time room lockouts</i></p>
-    </td>
-    <td width="50%">
-      <img src="game-docs/screenshots/fight.jpg" alt="Live Match Combat" width="100%"/>
-      <p align="center"><b>Deterministic Cyber Arena</b><br/><i>60 FPS canvas engine with multi-layered hitboxes & combat physics</i></p>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <img src="game-docs/screenshots/ultimate-cutin.jpg" alt="Cinematic Ultimate Cut-in" width="100%"/>
-      <p align="center"><b>Cinematic Cut-Ins</b><br/><i>Fullscreen manga-style anime cuts paired with voice acting</i></p>
-    </td>
-    <td width="50%">
-      <img src="game-docs/screenshots/mobile.jpg" alt="Mobile Landscape Shell" width="100%"/>
-      <p align="center"><b>Cross-Platform Ready</b><br/><i>Instant landscape touch-controls on mobile & tablet without install</i></p>
-    </td>
-  </tr>
-</table>
 
 ---
 
@@ -95,20 +64,20 @@ An emergency defensive combo-breaker and momentum shifter:
 
 Twelve fighters battle across two ideological factions: **COREBOUND** (precision cybernetic chassis tuned to high-frequency energy cores) and **FERALBOUND** (instinctual demibeast warriors channeling raw kinetic momentum).
 
-| Avatar | Fighter | Faction | Combat Archetype | Signature Ultimate |
-| :---: | :--- | :---: | :--- | :--- |
-| <img src="assets/ui/arco-avatar.webp" width="44"/> | **VEX** | `COREBOUND` | Heavy Brawler / Drone Support | *Helios Squadron* (Orbital Laser) |
-| <img src="assets/fenr/ui/portrait-human.webp" width="44"/> | **RIFT** | `FERALBOUND` | Agile / Beast Transformation | *Feral Awakening* (Werewolf Rampage) |
-| <img src="assets/mira/ui/portrait.webp" width="44"/> | **NOVA** | `COREBOUND` | Heavy Mech / Ballistic Barrage | *Rocket Parade* (Multi-Missile Salvo) |
-| <img src="assets/cora/ui/portrait.webp" width="44"/> | **NOX** | `FERALBOUND` | Aerial Assassin / Raven Swarm | *Night Murmuration* (Shadow Dagger) |
-| <img src="assets/naja/ui/portrait.webp" width="44"/> | **SABLE** | `FERALBOUND` | Mid-Range / Urumi Whip & Serpent | *Dune Serpent* (Coiling Quake) |
-| <img src="assets/haldor/ui/portrait.webp" width="44"/> | **FORGE** | `COREBOUND` | Superheavy Tank / Steam Forge Hammer | *Forge Quake* (Geothermal Stomp) |
-| <img src="assets/zanni/ui/portrait.webp" width="44"/> | **JINX** | `COREBOUND` | Trickster / Dual Clockwork Blades | *Grand Finale* (Bladed Ring Trap) |
-| <img src="assets/isolde/ui/portrait.webp" width="44"/> | **AERO** | `COREBOUND` | Piercing Lancer / Stilt-Leg Charges | *Skyfall Lances* (Glacial Piercer) |
-| <img src="assets/rhea/ui/portrait.webp" width="44"/> | **ORBIT** | `COREBOUND` | Gravitational Zoner / Orrery Spheres | *Grand Orrery* (Singularity Well) |
-| <img src="assets/solan/ui/portrait.webp" width="44"/> | **EMBER** | `FERALBOUND` | Sunmane Powerhouse / Greatsword | *Sunmane Roar* (Solar Shockwave) |
-| <img src="assets/nib/ui/portrait.webp" width="44"/> | **KITE** | `FERALBOUND` | Rushdown Courier / Twin Batons | *Special Delivery* (Baton Flurry) |
-| <img src="assets/edda/ui/portrait.webp" width="44"/> | **MOSS** | `FERALBOUND` | Guardian / Shell Counter Defender | *Elder Tortoise* (Spirit Earthshaker) |
+| Fighter | Faction | Combat Archetype | Signature Ultimate |
+| :--- | :---: | :--- | :--- |
+| **VEX** | `COREBOUND` | Heavy Brawler / Drone Support | *Helios Squadron* (Orbital Laser) |
+| **RIFT** | `FERALBOUND` | Agile / Beast Transformation | *Feral Awakening* (Werewolf Rampage) |
+| **NOVA** | `COREBOUND` | Heavy Mech / Ballistic Barrage | *Rocket Parade* (Multi-Missile Salvo) |
+| **NOX** | `FERALBOUND` | Aerial Assassin / Raven Swarm | *Night Murmuration* (Shadow Dagger) |
+| **SABLE** | `FERALBOUND` | Mid-Range / Urumi Whip & Serpent | *Dune Serpent* (Coiling Quake) |
+| **FORGE** | `COREBOUND` | Superheavy Tank / Steam Forge Hammer | *Forge Quake* (Geothermal Stomp) |
+| **JINX** | `COREBOUND` | Trickster / Dual Clockwork Blades | *Grand Finale* (Bladed Ring Trap) |
+| **AERO** | `COREBOUND` | Piercing Lancer / Stilt-Leg Charges | *Skyfall Lances* (Glacial Piercer) |
+| **ORBIT** | `COREBOUND` | Gravitational Zoner / Orrery Spheres | *Grand Orrery* (Singularity Well) |
+| **EMBER** | `FERALBOUND` | Sunmane Powerhouse / Greatsword | *Sunmane Roar* (Solar Shockwave) |
+| **KITE** | `FERALBOUND` | Rushdown Courier / Twin Batons | *Special Delivery* (Baton Flurry) |
+| **MOSS** | `FERALBOUND` | Guardian / Shell Counter Defender | *Elder Tortoise* (Spirit Earthshaker) |
 
 ---
 
@@ -216,7 +185,7 @@ DEPLOYER_PRIVATE_KEY=your_private_key_here
 ```
 
 ### 3. Run Automated Tests
-Verify all 17 combat mechanics, lobby sync, and room preservation tests:
+Verify all 15 combat mechanics, lobby sync, and room preservation tests:
 ```bash
 npm test
 ```
@@ -243,7 +212,7 @@ The frontend build is completely self-contained with zero runtime dependencies:
 ```bash
 npm run build
 ```
-Deploy the generated `/dist` folder. All 277 game assets (audio, sprites, fonts, stylesheets) are automatically packaged and pre-cached via service workers.
+Deploy the generated `/dist` folder. All game assets (audio, sprites, fonts, stylesheets) are automatically packaged and pre-cached via service workers.
 
 ### Realtime Backend (Render / Railway / VPS)
 Run on any persistent Node.js runtime:
