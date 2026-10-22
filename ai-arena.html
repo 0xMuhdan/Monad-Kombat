@@ -1,0 +1,977 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>MONAD KOMBAT // AI Colosseum & Web3 Spectator</title>
+<link rel="preload" href="assets/fonts/Rajdhani-Bold.ttf" as="font" type="font/ttf" crossorigin>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="menu.css">
+<style>
+:root {
+  --cyan: #5cf4e5;
+  --lime: #d9e85b;
+  --rust: #ff7b39;
+  --purple: #836ef9;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #080c14;
+}
+
+#game-shell {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Spectator Web3 Header - Clean, non-overlapping single row */
+.spectator-topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 48px;
+  background: #070c15fa;
+  border-bottom: 1px solid #5cf4e544;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+  z-index: 50;
+  font-family: Rajdhani, sans-serif;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.8);
+}
+.spec-brand-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.spec-brand {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #fff;
+  white-space: nowrap;
+}
+.spec-brand em {
+  color: var(--cyan);
+  font-style: normal;
+}
+.spec-room-chip {
+  padding: 3px 8px;
+  background: #0a1722;
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+  font-size: 12px;
+  letter-spacing: 2px;
+  font-weight: 700;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+.spec-web3-controls {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+.spec-btn {
+  font: 700 12px Rajdhani, sans-serif;
+  letter-spacing: 1px;
+  padding: 5px 11px;
+  border: 1px solid #5cf4e566;
+  background: #0f1c24;
+  color: var(--cyan);
+  cursor: pointer;
+  transition: all .2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 2px;
+}
+.spec-btn:hover:not(:disabled) {
+  background: var(--cyan);
+  color: #070c12;
+  border-color: #fff;
+  box-shadow: 0 0 12px #5cf4e588;
+}
+.spec-btn:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+  border-color: #384a56;
+}
+.spec-btn.primary {
+  border-color: var(--purple);
+  background: linear-gradient(135deg, #836ef9, #5035e0);
+  color: #fff;
+}
+.spec-btn.primary:hover:not(:disabled) {
+  box-shadow: 0 0 14px #836ef9aa;
+  background: #9683ff;
+}
+.spec-btn.faucet-btn {
+  border-color: var(--lime);
+  background: #1e2815;
+  color: var(--lime);
+}
+.spec-btn.faucet-btn:hover:not(:disabled) {
+  background: var(--lime);
+  color: #111511;
+  box-shadow: 0 0 12px #d9e85b88;
+}
+.spec-balance-chip {
+  padding: 4px 10px;
+  background: #0b141d;
+  border: 1px solid #314a5e;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: #cbd5e1;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.spec-balance-chip b {
+  color: var(--lime);
+}
+
+/* Combat Header: Pushed down so it sits below topbar with zero overlap */
+.combat-header {
+  position: absolute !important;
+  top: 56px !important;
+  left: 28px !important;
+  right: 28px !important;
+  z-index: 20 !important;
+  filter: drop-shadow(0 6px 16px rgba(0,0,0,0.85)) !important;
+}
+
+/* Hype Meter Bar: Sits right under the round clock (clear sight of stage) */
+.hype-meter-wrap {
+  position: absolute;
+  top: 140px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(540px, 86vw);
+  background: #070c15f2;
+  border: 1px solid #5cf4e544;
+  padding: 5px 14px;
+  border-radius: 3px;
+  z-index: 22;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.85);
+  font-family: Rajdhani, sans-serif;
+}
+.hype-labels {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  margin-bottom: 5px;
+}
+.hype-labels .p1-tag { color: var(--cyan); }
+.hype-labels .p2-tag { color: var(--rust); }
+.hype-title {
+  color: #94a3b8;
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+.hype-track {
+  height: 9px;
+  background: #17212b;
+  border-radius: 2px;
+  overflow: hidden;
+  display: flex;
+  border: 1px solid #233444;
+}
+.hype-fill-p1 {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, var(--cyan));
+  box-shadow: 0 0 10px #5cf4e5;
+  transition: width .35s ease;
+}
+.hype-fill-p2 {
+  height: 100%;
+  background: linear-gradient(90deg, var(--rust), #f43f5e);
+  box-shadow: 0 0 10px #ff7b39;
+  transition: width .35s ease;
+}
+
+/* Spectator Sponsorship Deck (Bottom) */
+.spectator-deck {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(1180px, 96vw);
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  z-index: 25;
+  font-family: Rajdhani, sans-serif;
+  pointer-events: none;
+}
+.sponsor-card {
+  pointer-events: auto;
+  flex: 1;
+  background: linear-gradient(145deg, #09121bf0, #0e1925f4);
+  border: 1px solid #283d4e;
+  padding: 10px 16px;
+  border-radius: 4px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.8);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sponsor-card.p1-card {
+  border-color: #5cf4e566;
+  box-shadow: 0 0 18px #5cf4e518;
+}
+.sponsor-card.p2-card {
+  border-color: #ff7b3966;
+  box-shadow: 0 0 18px #ff7b3918;
+}
+.sponsor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #1f313e;
+  padding-bottom: 4px;
+}
+.sponsor-fighter-name {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+.p1-card .sponsor-fighter-name { color: var(--cyan); }
+.p2-card .sponsor-fighter-name { color: var(--rust); }
+.sponsor-hype-val {
+  font-size: 12px;
+  color: #94a3b8;
+  letter-spacing: 1px;
+}
+.sponsor-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.sponsor-action-btn {
+  padding: 9px 5px;
+  border: 1px solid #2d4558;
+  background: #091118;
+  color: #f1f5f9;
+  font: 700 13px Rajdhani, sans-serif;
+  letter-spacing: 1px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  border-radius: 2px;
+  transition: all .2s;
+}
+.sponsor-action-btn small {
+  font-size: 11px;
+  color: var(--lime);
+  font-weight: 400;
+}
+.sponsor-action-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+.p1-card .sponsor-action-btn:hover:not(:disabled) {
+  border-color: var(--cyan);
+  box-shadow: 0 0 12px #5cf4e566;
+}
+.p2-card .sponsor-action-btn:hover:not(:disabled) {
+  border-color: var(--rust);
+  box-shadow: 0 0 12px #ff7b3966;
+}
+.sponsor-action-btn.ult-btn {
+  background: linear-gradient(145deg, #182014, #121c22);
+}
+.sponsor-action-btn.ult-btn small {
+  color: #ffc785;
+  font-weight: 700;
+}
+.sponsor-action-btn:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Modals */
+.setup-overlay {
+  position: fixed;
+  inset: 0;
+  background: #060a0fdf;
+  backdrop-filter: blur(8px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Rajdhani, sans-serif;
+}
+.setup-modal {
+  width: min(720px, 94vw);
+  background: linear-gradient(145deg, #101923, #15222f);
+  border: 1px solid #5cf4e588;
+  box-shadow: 0 0 35px #5cf4e526;
+  padding: 24px 28px;
+  border-radius: 4px;
+  color: #fff;
+}
+.setup-header {
+  border-bottom: 1px solid #273b4c;
+  padding-bottom: 10px;
+  margin-bottom: 18px;
+}
+.setup-header h2 {
+  font-size: 26px;
+  letter-spacing: 3px;
+  margin: 0;
+  color: #fff;
+}
+.setup-header h2 em {
+  color: var(--cyan);
+  font-style: normal;
+}
+.setup-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.setup-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.setup-field label {
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: #94a3b8;
+  font-weight: 700;
+}
+.setup-field select {
+  background: #091017;
+  border: 1px solid #314b60;
+  color: #e2e8f0;
+  font: 700 15px Rajdhani, sans-serif;
+  letter-spacing: 1px;
+  padding: 8px 10px;
+  border-radius: 2px;
+  outline: none;
+}
+.setup-field select:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 10px #5cf4e544;
+}
+.setup-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid #273b4c;
+  padding-top: 14px;
+}
+
+#spec-toast {
+  position: fixed;
+  bottom: 125px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0f1d28fa;
+  border: 1px solid var(--cyan);
+  color: #fff;
+  padding: 9px 22px;
+  border-radius: 3px;
+  font: 700 14px Rajdhani, sans-serif;
+  letter-spacing: 1.5px;
+  z-index: 200;
+  box-shadow: 0 0 20px #000c;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .25s ease;
+}
+#spec-toast.visible {
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .spectator-deck {
+    flex-direction: column;
+    gap: 8px;
+    bottom: 6px;
+  }
+  .setup-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- Web3 Spectator Header -->
+<header class="spectator-topbar">
+  <div class="spec-brand-group">
+    <div class="spec-brand">MONAD <em>COLOSSEUM</em></div>
+    <div class="spec-room-chip">ROOM: <b id="room-code-display" style="color:var(--cyan)">------</b></div>
+    <button class="spec-btn" id="copy-room-btn" title="Copy room link for friends">📋 COPY</button>
+    <button class="spec-btn" id="join-code-btn" title="Enter room code">🔗 JOIN</button>
+    <div class="spec-balance-chip">AUDIENCE: <b id="spectator-count-text">1</b></div>
+  </div>
+  <div class="spec-web3-controls">
+    <button class="spec-btn faucet-btn" id="faucet-btn">✦ CLAIM 3.5 MON (1x)</button>
+    <div class="spec-balance-chip">SESSION: <b id="session-bal-text">0.00 MON</b></div>
+    <button class="spec-btn" id="deposit-btn">+ DEPOSIT</button>
+    <button class="spec-btn primary" id="connect-wallet-btn">CONNECT WALLET</button>
+    <button class="spec-btn" id="match-setup-btn">⚙ SETUP</button>
+    <button class="spec-btn" id="leave-arena-btn">✕ EXIT</button>
+  </div>
+</header>
+
+<!-- Live Hype Meter Voting Bar -->
+<div class="hype-meter-wrap" id="hype-meter-wrap">
+  <div class="hype-labels">
+    <span class="p1-tag"><strong id="p1-hype-name">CPU 1 VEX</strong> (<span id="p1-hype-pct">50%</span>)</span>
+    <span class="hype-title">⚡ AUDIENCE HYPE VOTE ⚡</span>
+    <span class="p2-tag">(<span id="p2-hype-pct">50%</span>) <strong id="p2-hype-name">RIFT CPU 2</strong></span>
+  </div>
+  <div class="hype-track">
+    <div class="hype-fill-p1" id="hype-fill-p1" style="width: 50%;"></div>
+    <div class="hype-fill-p2" id="hype-fill-p2" style="width: 50%;"></div>
+  </div>
+</div>
+
+<!-- Match Canvas Shell -->
+<main id="game-shell" aria-label="Monad Kombat AI Spectator Arena">
+  <canvas id="arena" tabindex="0"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <header class="combat-header">
+    <section class="fighter fighter-one" aria-label="Status CPU 1">
+      <div class="portrait-frame"><img id="player-portrait" class="portrait-image" data-portrait-side="player" src="assets/ui/arco-avatar.webp" alt="CPU 1"><b class="player-tag">CPU 1</b></div>
+      <div class="fighter-fields">
+        <div class="name-row"><h1 id="player-name">VEX</h1><span class="class-tag" id="player-class">COREBOUND</span></div>
+        <div class="life-frame"><div class="life-track"><div id="health-reserve" class="life-fill reserve-fill"></div><div id="health-fill" class="life-fill"></div></div></div>
+        <div class="bar-caption"><span id="player-title">AI FIGHTER</span><span id="health-label">200 / 200</span></div>
+        <div class="fighter-mark"><i></i><i></i><i></i><b class="round-wins" id="round-wins-player"></b><span id="player-status">READY</span></div>
+      </div>
+    </section>
+
+    <section class="match-center" aria-label="AI Duel Clock">
+      <div class="mode-kicker" id="mode-label">AI SPECTATOR</div>
+      <div class="match-clock" id="match-clock">90</div>
+      <div class="match-rule"><i></i><span id="match-score">VS</span><i></i></div>
+    </section>
+
+    <section class="fighter fighter-two" aria-label="Status CPU 2">
+      <div class="fighter-fields">
+        <div class="name-row"><span class="class-tag" id="enemy-class">FERALBOUND</span><h2 id="enemy-name">RIFT</h2></div>
+        <div class="life-frame"><div class="life-track"><div id="guard-reserve" class="life-fill reserve-fill"></div><div id="guard-fill" class="life-fill"></div></div></div>
+        <div class="bar-caption"><span id="guard-label">HP 200 / 200</span><span id="enemy-title">AI FIGHTER</span></div>
+        <div class="fighter-mark"><b class="round-wins" id="round-wins-enemy"></b><span id="dummy-state">READY</span><i></i><i></i><i></i></div>
+      </div>
+      <div class="portrait-frame"><img id="enemy-portrait" class="portrait-image" data-portrait-side="enemy" src="assets/fenr/ui/portrait-human.webp" alt="CPU 2"><b class="player-tag">CPU 2</b></div>
+    </section>
+  </header>
+
+  <section id="round-call" hidden><small id="round-call-detail">FIRST TO TWO WINS</small><strong id="round-call-title"></strong></section>
+  <div id="announcement" class="announcement"></div>
+  <aside id="ultimate-cutin" class="ultimate-cutin"><div class="cutin-circuit"></div><img class="cutin-art" src="assets/ui/ultimate-cutin.webp" alt=""><div class="cutin-caption"><span class="cutin-kicker">ULTIMATE STRIKE</span><strong>HELIOS<br><em>SQUADRON</em></strong></div></aside>
+
+  <!-- Bottom Spectator Deck for Sponsoring Moves -->
+  <footer class="spectator-deck">
+    <!-- CPU 1 Sponsor Panel -->
+    <div class="sponsor-card p1-card">
+      <div class="sponsor-header">
+        <span class="sponsor-fighter-name">⚡ SPONSOR <span id="p1-deck-name">VEX (CPU 1)</span></span>
+        <span class="sponsor-hype-val">VOTED: <b id="p1-deck-spent">0.0 MON</b></span>
+      </div>
+      <div class="sponsor-buttons">
+        <button class="sponsor-action-btn" data-target="p1" data-skill="skill1">
+          <span>SKILL 1</span><small>0.5 MON</small>
+        </button>
+        <button class="sponsor-action-btn" data-target="p1" data-skill="skill2">
+          <span>SKILL 2</span><small>1.0 MON</small>
+        </button>
+        <button class="sponsor-action-btn ult-btn" data-target="p1" data-skill="ultimate">
+          <span>★ ULTIMATE</span><small>2.0 MON</small>
+        </button>
+      </div>
+    </div>
+
+    <!-- CPU 2 Sponsor Panel -->
+    <div class="sponsor-card p2-card">
+      <div class="sponsor-header">
+        <span class="sponsor-fighter-name">⚡ SPONSOR <span id="p2-deck-name">RIFT (CPU 2)</span></span>
+        <span class="sponsor-hype-val">VOTED: <b id="p2-deck-spent">0.0 MON</b></span>
+      </div>
+      <div class="sponsor-buttons">
+        <button class="sponsor-action-btn" data-target="p2" data-skill="skill1">
+          <span>SKILL 1</span><small>0.5 MON</small>
+        </button>
+        <button class="sponsor-action-btn" data-target="p2" data-skill="skill2">
+          <span>SKILL 2</span><small>1.0 MON</small>
+        </button>
+        <button class="sponsor-action-btn ult-btn" data-target="p2" data-skill="ultimate">
+          <span>★ ULTIMATE</span><small>2.0 MON</small>
+        </button>
+      </div>
+    </div>
+  </footer>
+</main>
+
+<!-- Hidden elements required by engine to prevent null errors -->
+<div id="front-menu" hidden></div>
+<div id="load-state" class="load-state hidden"></div>
+<section id="combo" class="combo-counter"><span id="combo-count">0</span><div><strong>HITS</strong><small id="combo-damage">0 DAMAGE</small></div></section>
+<div style="display:none">
+  <strong id="total-damage">0</strong><strong id="best-combo">0</strong>
+  <span id="stage-name">BELLORA</span><small id="stage-subtitle">COURTYARD</small>
+  <button id="pause-btn"></button><button id="resume-btn"></button><button id="restart-btn"></button><button id="back-menu"></button>
+  <select id="character-select"><option value="arco">VEX</option></select><input type="checkbox" id="ai-toggle" checked>
+  <button id="settings-btn"></button><button id="close-settings"></button>
+  <input type="checkbox" id="hitbox-toggle"><input type="checkbox" id="sound-toggle" checked><input type="checkbox" id="music-toggle" checked>
+  <input type="range" id="music-slider" value="5"><output id="music-value">5%</output>
+  <input type="range" id="volume-slider" value="45"><output id="volume-value">45%</output>
+  <button id="sound-test"></button><button id="fullscreen-btn"></button>
+  <dialog id="settings-panel"></dialog><dialog id="pause-panel"></dialog>
+</div>
+
+<!-- Match Setup Overlay -->
+<div class="setup-overlay" id="setup-overlay" style="display: none;">
+  <div class="setup-modal">
+    <div class="setup-header">
+      <h2>AI COLOSSEUM // <em>MATCH SETUP</em></h2>
+      <p style="color:#94a3b8;font-size:14px;margin:4px 0 0">Configure autonomous AI combatants and battle parameters for this room.</p>
+    </div>
+    <div class="setup-grid">
+      <div class="setup-field">
+        <label>CPU 1 FIGHTER (LEFT)</label>
+        <select id="cfg-p1">
+          <option value="arco" selected>VEX · Corebound</option>
+          <option value="fenr">RIFT · Feralbound</option>
+          <option value="mira">NOVA · Corebound</option>
+          <option value="cora">NOX · Feralbound</option>
+          <option value="naja">SABLE · Feralbound</option>
+          <option value="haldor">FORGE · Corebound</option>
+          <option value="zanni">JINX · Corebound</option>
+          <option value="isolde">AERO · Corebound</option>
+          <option value="rhea">ORBIT · Corebound</option>
+          <option value="solan">EMBER · Feralbound</option>
+          <option value="nib">KITE · Feralbound</option>
+          <option value="edda">MOSS · Feralbound</option>
+        </select>
+      </div>
+      <div class="setup-field">
+        <label>CPU 2 FIGHTER (RIGHT)</label>
+        <select id="cfg-p2">
+          <option value="fenr" selected>RIFT · Feralbound</option>
+          <option value="arco">VEX · Corebound</option>
+          <option value="mira">NOVA · Corebound</option>
+          <option value="cora">NOX · Feralbound</option>
+          <option value="naja">SABLE · Feralbound</option>
+          <option value="haldor">FORGE · Corebound</option>
+          <option value="zanni">JINX · Corebound</option>
+          <option value="isolde">AERO · Corebound</option>
+          <option value="rhea">ORBIT · Corebound</option>
+          <option value="solan">EMBER · Feralbound</option>
+          <option value="nib">KITE · Feralbound</option>
+          <option value="edda">MOSS · Feralbound</option>
+        </select>
+      </div>
+      <div class="setup-field">
+        <label>AI DIFFICULTY LEVEL</label>
+        <select id="cfg-level">
+          <option value="easy">Easy (Relaxed Pacing)</option>
+          <option value="medium" selected>Medium (Standard Combat)</option>
+          <option value="hard">Hard (Aggressive Combos)</option>
+          <option value="excellent">Excellent (Pro Read & Punish)</option>
+        </select>
+      </div>
+      <div class="setup-field">
+        <label>BATTLE ARENA</label>
+        <select id="cfg-stage">
+          <option value="bellora" selected>Bellora Courtyard</option>
+          <option value="sunspire">Sunspire Terrace</option>
+          <option value="harbor">Azure Harbor</option>
+          <option value="elderwood">Elderwood Glade</option>
+          <option value="moonrise">Moonrise Bastion</option>
+        </select>
+      </div>
+    </div>
+    <div class="setup-actions">
+      <button class="spec-btn" id="close-setup-btn">CANCEL</button>
+      <button class="spec-btn primary" id="launch-duel-btn">START AI DUEL ↗</button>
+    </div>
+  </div>
+</div>
+
+<!-- Join Room Overlay -->
+<div class="setup-overlay" id="join-room-overlay" style="display: none;">
+  <div class="setup-modal" style="max-width: 440px;">
+    <div class="setup-header">
+      <h2>ENTER <em>ROOM CODE</em></h2>
+      <p style="color:#94a3b8;font-size:14px;margin:4px 0 0">Synchronize with an existing spectator room.</p>
+    </div>
+    <div style="margin: 20px 0;">
+      <input id="input-room-code" maxlength="6" placeholder="ROOM CODE (E.G. MN7K9Q)" style="width:100%;padding:14px;background:#091017;border:1px solid #5cf4e566;color:#5cf4e5;font:700 24px Rajdhani;letter-spacing:6px;text-align:center;text-transform:uppercase;">
+    </div>
+    <div class="setup-actions">
+      <button class="spec-btn" id="close-join-btn">CANCEL</button>
+      <button class="spec-btn primary" id="confirm-join-btn">CONNECT TO ROOM ↗</button>
+    </div>
+  </div>
+</div>
+
+<div id="spec-toast"></div>
+
+<!-- Scripts -->
+<script>
+// Instant image loading flag: skip slow background precache blocking
+window.BLITZBOUND_PRELOAD = Promise.resolve();
+window.FRONTEND_ENABLED = false;
+</script>
+<script src="colyseus.js"></script>
+<script src="assets/mecha/manifest.js"></script>
+<script src="assets/stage-config.js"></script>
+<script src="assets/ui/drone-config.js"></script>
+<script src="assets/fenr/human/manifest.js"></script>
+<script src="assets/fenr/wolf/manifest.js"></script>
+<script src="fenr.js"></script>
+<script src="assets/mira/manifest.js"></script>
+<script src="mira.js"></script>
+<script src="assets/cora/manifest.js"></script>
+<script src="cora.js"></script>
+<script src="assets/naja/manifest.js"></script>
+<script src="naja.js"></script>
+<script src="assets/haldor/manifest.js"></script>
+<script src="haldor.js"></script>
+<script src="assets/zanni/manifest.js"></script>
+<script src="zanni.js"></script>
+<script src="assets/isolde/manifest.js"></script>
+<script src="isolde.js"></script>
+<script src="assets/rhea/manifest.js"></script>
+<script src="rhea.js"></script>
+<script src="assets/solan/manifest.js"></script>
+<script src="solan.js"></script>
+<script src="assets/nib/manifest.js"></script>
+<script src="nib.js"></script>
+<script src="assets/edda/manifest.js"></script>
+<script src="edda.js"></script>
+<script src="assets/audio/announcer/manifest.js"></script>
+<script src="announcer.js"></script>
+<script src="match.js"></script>
+<script src="game.js"></script>
+<script src="spectator-web3.js"></script>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const toast = $('spec-toast');
+  let toastTimer = null;
+  function showToast(msg) {
+    if (toastTimer) clearTimeout(toastTimer);
+    toast.textContent = msg;
+    toast.classList.add('visible');
+    toastTimer = setTimeout(() => toast.classList.remove('visible'), 3200);
+  }
+
+  const fighterNames = {
+    arco: 'VEX', fenr: 'RIFT', mira: 'NOVA', cora: 'NOX', naja: 'SABLE',
+    haldor: 'FORGE', zanni: 'JINX', isolde: 'AERO', rhea: 'ORBIT',
+    solan: 'EMBER', nib: 'KITE', edda: 'MOSS'
+  };
+
+  // Determine Room Code
+  const urlParams = new URLSearchParams(location.search);
+  let roomCode = (urlParams.get('room') || '').toUpperCase().slice(0, 6);
+  if (!roomCode || roomCode.length !== 6) {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    roomCode = '';
+    for (let i = 0; i < 6; i++) roomCode += chars.charAt(Math.floor(Math.random() * chars.length));
+    history.replaceState(null, '', `?room=${roomCode}`);
+  }
+
+  $('room-code-display').textContent = roomCode;
+
+  // Copy Room Link
+  $('copy-room-btn').onclick = async () => {
+    const url = `${location.origin}${location.pathname}?room=${roomCode}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      showToast(`Room link copied! Share with friends to spectate together.`);
+    } catch (_) {
+      prompt('Copy Room Link:', url);
+    }
+  };
+
+  // Switch Room Modal
+  $('join-code-btn').onclick = () => {
+    $('join-room-overlay').style.display = 'flex';
+    $('input-room-code').focus();
+  };
+  $('close-join-btn').onclick = () => {
+    $('join-room-overlay').style.display = 'none';
+  };
+  $('confirm-join-btn').onclick = () => {
+    const input = $('input-room-code').value.trim().toUpperCase();
+    if (input.length === 6) {
+      location.href = `ai-arena.html?room=${input}`;
+    } else {
+      showToast('Room code must be 6 characters');
+    }
+  };
+
+  let currentP1 = 'arco';
+  let currentP2 = 'fenr';
+  let currentLevel = 'medium';
+  let currentStage = 'bellora';
+  let colyseusRoom = null;
+
+  // Connect Colyseus for Room Sync
+  async function connectColyseus() {
+    try {
+      if (!window.Colyseus) return;
+      const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsHost = globalThis.BLITZBOUND_WS_URL || `${wsProtocol}//${location.hostname || 'localhost'}:2567`;
+      const client = new window.Colyseus.Client(wsHost);
+      const snapshot = window.SpectatorWeb3.getSnapshot();
+      const playerId = snapshot.walletAddress || `spec_${Math.random().toString(36).slice(2, 7)}`;
+
+      colyseusRoom = await client.joinOrCreate('match', {
+        code: roomCode,
+        spectator: true,
+        playerId
+      });
+
+      console.log('Connected to Colyseus Spectator Room:', roomCode);
+      showToast(`Connected to Realtime Room ${roomCode}!`);
+
+      colyseusRoom.onMessage('spectator_count', data => {
+        if ($('spectator-count-text')) $('spectator-count-text').textContent = String(data.count || 1);
+      });
+
+      colyseusRoom.onMessage('hype_update', data => {
+        $('p1-hype-pct').textContent = `${data.pctP1}%`;
+        $('p2-hype-pct').textContent = `${data.pctP2}%`;
+        $('hype-fill-p1').style.width = `${data.pctP1}%`;
+        $('hype-fill-p2').style.width = `${data.pctP2}%`;
+        $('p1-deck-spent').textContent = `${(data.hypeP1 || 0).toFixed(1)} MON`;
+        $('p2-deck-spent').textContent = `${(data.hypeP2 || 0).toFixed(1)} MON`;
+      });
+
+      colyseusRoom.onMessage('room_setup', data => {
+        if (data && data.p1 && data.p2) {
+          currentP1 = data.p1;
+          currentP2 = data.p2;
+          currentLevel = data.level || 'medium';
+          currentStage = data.stage || 'bellora';
+          startDuel(currentP1, currentP2, currentLevel, currentStage, false);
+          showToast(`Synced room: ${fighterNames[currentP1]} vs ${fighterNames[currentP2]}`);
+        }
+      });
+
+      colyseusRoom.onMessage('sponsor_event', event => {
+        if (window.__game?.sponsorFighterMove) {
+          window.__game.sponsorFighterMove(event.target, event.skill);
+        }
+        if (event.pctP1 !== undefined) {
+          $('p1-hype-pct').textContent = `${event.pctP1}%`;
+          $('p2-hype-pct').textContent = `${event.pctP2}%`;
+          $('hype-fill-p1').style.width = `${event.pctP1}%`;
+          $('hype-fill-p2').style.width = `${event.pctP2}%`;
+          $('p1-deck-spent').textContent = `${(event.hypeP1 || 0).toFixed(1)} MON`;
+          $('p2-deck-spent').textContent = `${(event.hypeP2 || 0).toFixed(1)} MON`;
+        }
+        const sender = event.sponsorName && event.sponsorName.startsWith('0x') ? `${event.sponsorName.slice(0, 6)}...` : (event.sponsorName || 'Audience');
+        showToast(`★ ${sender} sponsored ${event.skill.toUpperCase()} for ${event.target.toUpperCase()}!`);
+      });
+
+    } catch (err) {
+      console.warn('Colyseus realtime connection notice:', err.message);
+    }
+  }
+
+  // Subscribe to Web3 state
+  window.SpectatorWeb3.subscribe(state => {
+    $('session-bal-text').textContent = `${state.sessionBalance.toFixed(2)} MON`;
+    $('connect-wallet-btn').textContent = state.connected 
+      ? `${state.walletAddress.slice(0, 6)}...${state.walletAddress.slice(-4)}`
+      : 'CONNECT WALLET';
+
+    if (state.hasClaimedFaucet) {
+      $('faucet-btn').textContent = '✓ CLAIMED (3.5 MON)';
+      $('faucet-btn').disabled = true;
+    } else {
+      $('faucet-btn').textContent = '✦ CLAIM 3.5 MON (1x)';
+      $('faucet-btn').disabled = false;
+    }
+
+    if (!colyseusRoom) {
+      $('p1-hype-pct').textContent = `${state.pctP1}%`;
+      $('p2-hype-pct').textContent = `${state.pctP2}%`;
+      $('hype-fill-p1').style.width = `${state.pctP1}%`;
+      $('hype-fill-p2').style.width = `${state.pctP2}%`;
+      $('p1-deck-spent').textContent = `${state.spentP1.toFixed(1)} MON`;
+      $('p2-deck-spent').textContent = `${state.spentP2.toFixed(1)} MON`;
+    }
+
+    // Update sponsor buttons availability
+    document.querySelectorAll('.sponsor-action-btn').forEach(btn => {
+      const skill = btn.dataset.skill;
+      const cost = window.SpectatorWeb3.getSkillCost(skill);
+      btn.disabled = state.sessionBalance < cost;
+    });
+  });
+
+  // Faucet claim handler
+  $('faucet-btn').onclick = async () => {
+    try {
+      const res = await window.SpectatorWeb3.claimFaucet();
+      showToast(res.message);
+    } catch (e) {
+      showToast(e.message);
+    }
+  };
+
+  // Deposit handler
+  $('deposit-btn').onclick = async () => {
+    try {
+      const res = await window.SpectatorWeb3.depositSession(3.5);
+      showToast(`+3.5 MON deposited into Session Escrow!`);
+    } catch (e) {
+      showToast(e.message);
+    }
+  };
+
+  // Wallet connect handler
+  $('connect-wallet-btn').onclick = async () => {
+    try {
+      const addr = await window.SpectatorWeb3.connectWallet();
+      showToast(`Wallet connected: ${addr.slice(0, 6)}...${addr.slice(-4)}`);
+      if (!colyseusRoom) connectColyseus();
+    } catch (e) {
+      showToast(e.message);
+    }
+  };
+
+  // Setup modal handlers
+  $('match-setup-btn').onclick = () => {
+    $('setup-overlay').style.display = 'flex';
+  };
+  $('close-setup-btn').onclick = () => {
+    $('setup-overlay').style.display = 'none';
+  };
+  $('leave-arena-btn').onclick = () => {
+    const settlement = window.SpectatorWeb3.settleSession();
+    if (settlement.refunded > 0) {
+      alert(`Session Refund: ${settlement.refunded.toFixed(2)} MON returned to your wallet.`);
+    }
+    location.href = 'monad-kombat.html';
+  };
+
+  // Sponsor skill click handlers
+  document.querySelectorAll('.sponsor-action-btn').forEach(btn => {
+    btn.onclick = () => {
+      const target = btn.dataset.target;
+      const skill = btn.dataset.skill;
+      try {
+        const res = window.SpectatorWeb3.spendSponsor(target, skill);
+        const snapshot = window.SpectatorWeb3.getSnapshot();
+        const sponsorName = snapshot.walletAddress || 'Spectator';
+
+        if (colyseusRoom) {
+          colyseusRoom.send('sponsor_action', {
+            target,
+            skill,
+            amount: res.cost,
+            sponsorName
+          });
+        } else {
+          if (window.__game?.sponsorFighterMove) {
+            window.__game.sponsorFighterMove(target, skill);
+          }
+          showToast(`★ Sponsored ${skill.toUpperCase()} for ${target.toUpperCase()}! (-${res.cost} MON)`);
+        }
+      } catch (err) {
+        showToast(err.message);
+      }
+    };
+  });
+
+  function startDuel(p1, p2, level, stage, broadcast = true) {
+    currentP1 = p1;
+    currentP2 = p2;
+    currentLevel = level;
+    currentStage = stage;
+
+    $('p1-hype-name').textContent = `CPU 1 ${fighterNames[p1] || p1.toUpperCase()}`;
+    $('p2-hype-name').textContent = `${fighterNames[p2] || p2.toUpperCase()} CPU 2`;
+    $('p1-deck-name').textContent = `${fighterNames[p1] || p1.toUpperCase()} (CPU 1)`;
+    $('p2-deck-name').textContent = `${fighterNames[p2] || p2.toUpperCase()} (CPU 2)`;
+
+    if (broadcast && colyseusRoom) {
+      colyseusRoom.send('room_setup', { p1, p2, level, stage });
+    }
+
+    if (window.__game?.startMatch) {
+      window.__game.startMatch({
+        player: p1,
+        enemy: p2,
+        level,
+        stage,
+        mode: 'spectator'
+      });
+    }
+  }
+
+  $('launch-duel-btn').onclick = () => {
+    const p1 = $('cfg-p1').value;
+    const p2 = $('cfg-p2').value;
+    const level = $('cfg-level').value;
+    const stage = $('cfg-stage').value;
+    $('setup-overlay').style.display = 'none';
+    startDuel(p1, p2, level, stage, true);
+    showToast(`AI Colosseum duel launched: ${fighterNames[p1]} vs ${fighterNames[p2]}!`);
+  };
+
+  // Listen for match completion
+  window.FrontEnd = window.FrontEnd || {};
+  window.FrontEnd.showResult = result => {
+    const winnerName = result.winner === 'player' ? fighterNames[currentP1] : fighterNames[currentP2];
+    showToast(`MATCH COMPLETE! ${winnerName} TAKES VICTORY!`);
+    setTimeout(() => {
+      const settlement = window.SpectatorWeb3.settleSession();
+      if (settlement.refunded > 0) {
+        showToast(`AUTO-REFUND: ${settlement.refunded.toFixed(2)} MON returned to your wallet!`);
+      }
+    }, 1500);
+  };
+
+  // Wait for game readiness
+  const checkReady = setInterval(() => {
+    if (window.__game && window.__game.snapshot().ready) {
+      clearInterval(checkReady);
+      connectColyseus();
+      startDuel(currentP1, currentP2, currentLevel, currentStage, false);
+    }
+  }, 100);
+})();
+</script>
+</body>
+</html>

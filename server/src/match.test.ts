@@ -142,3 +142,32 @@ test('resolves draw when both teams are wiped out', () => {
   assert.equal(finalState.phase, 'finished');
   assert.equal(finalState.winner, null); // Draw
 });
+
+test('calculates hype percentages accurately for spectator sponsorships', () => {
+  let hypeP1 = 0;
+  let hypeP2 = 0;
+
+  // Sponsor skill1 for p1: 0.5 MON
+  hypeP1 += 0.5;
+  let totalHype = hypeP1 + hypeP2;
+  let pctP1 = totalHype > 0 ? Math.round((hypeP1 / totalHype) * 100) : 50;
+  let pctP2 = 100 - pctP1;
+  assert.equal(pctP1, 100);
+  assert.equal(pctP2, 0);
+
+  // Sponsor skill2 for p2: 1.0 MON
+  hypeP2 += 1.0;
+  totalHype = hypeP1 + hypeP2; // 1.5 MON
+  pctP1 = Math.round((hypeP1 / totalHype) * 100); // 0.5 / 1.5 = 33%
+  pctP2 = 100 - pctP1; // 67%
+  assert.equal(pctP1, 33);
+  assert.equal(pctP2, 67);
+
+  // Sponsor ultimate for p1: 2.0 MON
+  hypeP1 += 2.0; // 2.5 MON
+  totalHype = hypeP1 + hypeP2; // 3.5 MON
+  pctP1 = Math.round((hypeP1 / totalHype) * 100); // 2.5 / 3.5 = 71%
+  pctP2 = 100 - pctP1; // 29%
+  assert.equal(pctP1, 71);
+  assert.equal(pctP2, 29);
+});

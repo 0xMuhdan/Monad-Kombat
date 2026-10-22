@@ -35,6 +35,7 @@
   const rechargePulse = {skill1:0,skill2:0,ultimate:0};
   // CPU memory: what it has already read about the player, and its current plan.
   let cpu = { seen: new WeakMap(), decided: new WeakSet(), read: null, followPunish: null, heroActionAt: 0, heroAction: null, airborne: false, airAt: 0, antiAirRead: false, plan: null, doubleAt: 0 };
+  let cpuHero = { seen: new WeakMap(), decided: new WeakSet(), read: null, followPunish: null, enemyActionAt: 0, enemyAction: null, airborne: false, airAt: 0, antiAirRead: false, plan: null, doubleAt: 0, aiThink: 0.4, aiTime: 0, aiChain: 0 };
   const SQUAD = { duration: 2.85, cutinDuration: .78, firstShot: 1.50, shotGap: .095, departure: 2.24, droneWidth: 112 };
   const hero = { x: 350, y: CONFIG.groundY, vx: 0, vy: 0, facing: 1, grounded: true, jumps: 0, state: 'idle', animTime: 0, walkPhase: 0, smokeDistance:0, action: null, runDirection: 0, hp: BALANCE.heroMax, koTime:0, invuln: 0, hurtTime: 0, doublePose: 0, rollDuration: CONFIG.rollDuration, rollBuffer: null, airTime: 0, cooldowns: { skill1: 0, skill2: 0, ultimate: 0 }, overdriveTime: 0, burstCooldown: 0 };
   const dummy = { x: 915, y: CONFIG.groundY, vx: 0, vy: 0, state: 'idle', stateTime: 0, damage: 0, ko:false, flash: 0, invuln: 0, angle: 0, respawnX: 915 };
@@ -172,19 +173,22 @@
   }
   function setMenuOpen(value) {
     menuOpen=!!value;clearInput();if(menuOpen){systemAnnouncer?.clear();stopUltimateVoice();squad=enemySquad=parade=enemyParade=flock=enemyFlock=serpent=enemySerpent=quake=enemyQuake=finale=enemyFinale=skyfall=enemySkyfall=orrery=enemyOrrery=sunroar=enemySunroar=delivery=enemyDelivery=tortoise=enemyTortoise=null;fenrCutin=null;projectiles.length=effects.length=0;setPaused(false);}
-    document.body.classList.toggle('in-menu',menuOpen);$('#front-menu').hidden=!menuOpen;
+    document.body.classList.toggle('in-menu',menuOpen);const fm=$('#front-menu');if(fm)fm.hidden=!menuOpen;
     window.FrontEnd?.syncBackground();
   }
   function playable() { return ['arco','fenr',...Object.keys(KITS)]; }
   function startMatch(options={}) {
     if(!ready||!Rules)return false;
     const {player='arco',enemy='fenr',stage='bellora',level='medium',mode='versus'}=options;
-    if(!playable().includes(player)||!playable().includes(enemy)||!Object.hasOwn(Rules.stages,stage)||!Object.hasOwn(Rules.difficulties,level)||!['versus','training'].includes(mode))return false;
+    if(!playable().includes(player)||!playable().includes(enemy)||!Object.hasOwn(Rules.stages,stage)||!Object.hasOwn(Rules.difficulties,level)||!['versus','training','spectator'].includes(mode))return false;
     if(!images['stage-'+stage])return false;
     selectedCharacter=player;opponentCharacter=enemy;stageId=stage;difficulty=level;images.stage=images['stage-'+stage];CONFIG.groundY=Rules.stages[stage].groundY;
-    aiEnabled=mode==='versus';match=Rules.create(mode);roundCues.length=0;setMenuOpen(false);resetCombat();warmCutins();
-    $('#ai-toggle').checked=aiEnabled;$('#character-select').value=selectedCharacter;document.body.classList.toggle('in-versus',mode==='versus');
-    if(mode==='versus'){announceTimer=0;emitRoundCue('round',1);}else announce('TRAINING READY',1.3);
+    const isFight = mode==='versus'||mode==='spectator';
+    aiEnabled=isFight;match=Rules.create(mode);roundCues.length=0;setMenuOpen(false);resetCombat();warmCutins();
+    const aiToggle=$('#ai-toggle');if(aiToggle)aiToggle.checked=aiEnabled;
+    const charSelect=$('#character-select');if(charSelect)charSelect.value=selectedCharacter;
+    document.body.classList.toggle('in-versus',isFight);
+    if(isFight){announceTimer=0;emitRoundCue('round',1);}else announce('TRAINING READY',1.3);
     return true;
   }
   function emitRoundCue(cue,round) {
@@ -193,7 +197,7 @@
     systemAnnouncer?.play(cue==='round'?`round_${round}`:'fight',{replace:cue==='round'});
   }
   function advanceMatch(dt) {
-    if(!Rules||!match||match.mode!=='versus')return;
+    if(!Rules||!match||(match.mode!=='versus'&&match.mode!=='spectator'))return;
     for(const event of Rules.tick(match,dt,hero.hp,currentDummyHP())) {
       if(event.type==='cue')emitRoundCue(event.cue,event.round);
       if(event.type==='round-end') {
@@ -207,20 +211,26 @@
         systemAnnouncer?.play([call,outcome]);
       }
       if(event.type==='next-round'){resetCombat();announceTimer=0;emitRoundCue('round',event.round);}
-      if(event.type==='complete')window.FrontEnd?.showResult({winner:match.winner,playerWins:match.playerWins,enemyWins:match.enemyWins,player:selectedCharacter,enemy:opponentCharacter,stage:stageId,level:difficulty,mode:'versus'});
+      if(event.type==='complete')window.FrontEnd?.showResult({winner:match.winner,playerWins:match.playerWins,enemyWins:match.enemyWins,player:selectedCharacter,enemy:opponentCharacter,stage:stageId,level:difficulty,mode:match.mode});
     }
   }
   function updateMatchHud() {
     if(!Rules)return;
-    const versus=match?.mode==='versus',s=Rules.stages[stageId];
-    $('#mode-label').textContent=versus?`ROUND ${match.round} / 3`:'FREE TRAINING';$('#match-clock').textContent=versus?String(Math.ceil(match.seconds)).padStart(2,'0'):'∞';
-    $('.match-center').setAttribute('aria-label',versus?'Pertandingan, menang dua ronde dari maksimal tiga':'Mode latihan tanpa batas waktu');
-    $('#match-score').textContent=versus?`${match.playerWins} — ${match.enemyWins}`:'VS';$('#stage-name').textContent=s.short;$('#stage-subtitle').textContent=s.subtitle;
-    $('#round-wins-player').textContent=versus?'◆'.repeat(match.playerWins)+'◇'.repeat(2-match.playerWins):'';$('#round-wins-enemy').textContent=versus?'◆'.repeat(match.enemyWins)+'◇'.repeat(2-match.enemyWins):'';
+    const versus=match?.mode==='versus'||match?.mode==='spectator',s=Rules.stages[stageId];
+    const modeLabel=$('#mode-label');if(modeLabel)modeLabel.textContent=versus?`ROUND ${match.round} / 3`:'FREE TRAINING';
+    const matchClock=$('#match-clock');if(matchClock)matchClock.textContent=versus?String(Math.ceil(match.seconds)).padStart(2,'0'):'∞';
+    const matchCenter=$('.match-center');if(matchCenter)matchCenter.setAttribute('aria-label',versus?'Pertandingan, menang dua ronde dari maksimal tiga':'Mode latihan tanpa batas waktu');
+    const matchScore=$('#match-score');if(matchScore)matchScore.textContent=versus?`${match.playerWins} — ${match.enemyWins}`:'VS';
+    const stageName=$('#stage-name');if(stageName)stageName.textContent=s.short;
+    const stageSub=$('#stage-subtitle');if(stageSub)stageSub.textContent=s.subtitle;
+    const rwPlayer=$('#round-wins-player');if(rwPlayer)rwPlayer.textContent=versus?'◆'.repeat(match.playerWins)+'◇'.repeat(2-match.playerWins):'';
+    const rwEnemy=$('#round-wins-enemy');if(rwEnemy)rwEnemy.textContent=versus?'◆'.repeat(match.enemyWins)+'◇'.repeat(2-match.enemyWins):'';
     const card=$('#round-call'),show=!menuOpen&&versus&&['intro','ko'].includes(match.phase);
-    card.hidden=!show;card.dataset.phase=match?.phase||'fight';
-    $('#round-call-title').textContent=!show?'':match.phase==='intro'?(match.fightCue?'FIGHT':`ROUND ${match.round}`):match.endText||'K.O.';
-    $('#round-call-detail').textContent=match?.phase==='ko'?(match.lastWinner==='draw'?'DRAW · ROUND REPLAY':(match.lastWinner==='player'?selectedCharacter:opponentCharacter).toUpperCase()+' WINS THE ROUND'):'FIRST TO TWO WINS';
+    if(card){
+      card.hidden=!show;card.dataset.phase=match?.phase||'fight';
+      const callTitle=$('#round-call-title');if(callTitle)callTitle.textContent=!show?'':match.phase==='intro'?(match.fightCue?'FIGHT':`ROUND ${match.round}`):match.endText||'K.O.';
+      const callDetail=$('#round-call-detail');if(callDetail)callDetail.textContent=match?.phase==='ko'?(match.lastWinner==='draw'?'DRAW · ROUND REPLAY':(match.lastWinner==='player'?selectedCharacter:opponentCharacter).toUpperCase()+' WINS THE ROUND'):'FIRST TO TWO WINS';
+    }
     canvas.dataset.mode=match?.mode||'training';canvas.dataset.matchPhase=match?.phase||'fight';canvas.dataset.round=String(match?.round||1);canvas.dataset.opponent=opponentCharacter;canvas.dataset.difficulty=difficulty;canvas.dataset.stage=stageId;
   }
 
@@ -333,7 +343,7 @@
     stopUltimateVoice();
     Object.assign(hero, { x: 350, y: CONFIG.groundY, vx: 0, vy: 0, facing: 1, grounded: true, jumps: 0, state: 'idle', animTime: 0, walkPhase: 0, smokeDistance:0, action: null, runDirection: 0, hp: BALANCE.heroMax, koTime:0, invuln: 0, hurtTime: 0, doublePose: 0, rollDuration: CONFIG.rollDuration, rollBuffer: null, airTime: 0, cooldowns: { skill1: 0, skill2: 0, ultimate: 0 }, overdriveTime: 0, burstCooldown: 0 });
     Object.assign(dummy, { x: 915, y: CONFIG.groundY, vx: 0, vy: 0, state: 'idle', stateTime: 0, damage: 0, ko:false, flash: 0, invuln: 0, angle: 0 });
-    if(F) {F.reset(hero);F.reset(dummy);Object.assign(dummy,{facing:-1,action:null,cooldowns:{skill1:0,skill2:0,ultimate:0},aiThink:.4,aiTime:0,aiChain:0,walkPhase:0,jumps:0});cpu={seen:new WeakMap(),decided:new WeakSet(),read:null,heroActionAt:0,heroAction:null,airborne:false,airAt:0,antiAirRead:false,plan:null,doubleAt:0};syncPlayerForm();}
+    if(F) {F.reset(hero);F.reset(dummy);Object.assign(dummy,{facing:-1,action:null,cooldowns:{skill1:0,skill2:0,ultimate:0},aiThink:.4,aiTime:0,aiChain:0,walkPhase:0,jumps:0});cpu={seen:new WeakMap(),decided:new WeakSet(),read:null,heroActionAt:0,heroAction:null,airborne:false,airAt:0,antiAirRead:false,plan:null,doubleAt:0};cpuHero={seen:new WeakMap(),decided:new WeakSet(),read:null,followPunish:null,enemyActionAt:0,enemyAction:null,airborne:false,airAt:0,antiAirRead:false,plan:null,doubleAt:0,aiThink:.4,aiTime:0,aiChain:0};syncPlayerForm();}
     fenrCutin=null;hudIdentity='';
     particles.length = effects.length = projectiles.length = damageNumbers.length = 0; totalDamage = comboHits = bestCombo = comboDamage = comboTimer = hitstop = trauma = cinematic = 0; clearInput(); setPaused(false); announce('TRAINING READY', 1.25);
     squad = null; enemySquad = null; parade = null; enemyParade = null; flock = null; enemyFlock = null; serpent = null; enemySerpent = null; quake = null; enemyQuake = null; finale = null; enemyFinale = null; skyfall = null; enemySkyfall = null; orrery = null; enemyOrrery = null; sunroar = null; enemySunroar = null; delivery = null; enemyDelivery = null; tortoise = null; enemyTortoise = null;
@@ -341,7 +351,7 @@
   }
   function reset() {
     if(Rules)match=Rules.create(match?.mode||'training');
-    resetCombat();if(match?.mode==='versus'){announceTimer=0;emitRoundCue('round',1);}
+    resetCombat();const isFight=match?.mode==='versus'||match?.mode==='spectator';if(isFight){announceTimer=0;emitRoundCue('round',1);}
   }
   function hitDummy(damage, power, color, sourceX, impactY, knockdown = false, freezeWorld = true, shake = 1) {
     if (menuOpen || (match && match.phase!=='fight') || dummy.invuln > 0 || dummy.state === 'down' || dummy.state === 'recover') return false;
@@ -351,7 +361,7 @@
     dummy.damage += damage; totalDamage += damage; comboHits++; bestCombo = Math.max(bestCombo, comboHits); comboDamage += damage; comboTimer = 2.3;
     // Versus combo limit: after comboCap hits in one continuous stun the CPU gets its immunity (like the player's),
     // so a re-started chain cannot loop it to K.O. Easy has no limit.
-    const cap = F && aiEnabled && match?.mode === 'versus' ? cpuProfile().comboCap : 0;
+    const cap = F && aiEnabled && (match?.mode === 'versus' || match?.mode === 'spectator') ? cpuProfile().comboCap : 0;
     dummy.stunHits = dummy.state === 'hurt' ? (dummy.stunHits || 0) + 1 : 1;
     if (cap && dummy.stunHits >= cap) dummy.invuln = .5 + cpuProfile().immunity;
     dummy.flash = 0; dummy.vx = dir * power; dummy.stateTime = 0; dummy.state = 'hurt';
@@ -816,17 +826,23 @@
     hero.burstCooldown = Math.max(0, (hero.burstCooldown || 0) - dt);
     if (hero.doublePose <= 0 && hero.rollBuffer && hero.hurtTime <= 0) { const buffered = hero.rollBuffer; hero.rollBuffer = null; if (buffered === 'attack') startAttack(); else cast(buffered); }
     comboTimer = Math.max(0, comboTimer - dt); if (!comboTimer) comboHits = comboDamage = 0;
+    const isSpectator = match?.mode === 'spectator';
+    if (isSpectator) keys.clear();
     const dir = (keys.has('d') ? 1 : 0) - (keys.has('a') ? 1 : 0), crouching = keys.has('s') && hero.grounded && !hero.action;
     if (!hero.action && hero.hurtTime <= 0 && hero.hp > 0) {
-      if (dir && hero.doublePose <= 0) hero.facing = dir;
-      if (hero.runDirection && dir !== hero.runDirection) hero.runDirection = 0;
-      const speed = (hero.runDirection === dir && dir ? CONFIG.runSpeed : CONFIG.walkSpeed)*(selectedCharacter==='fenr'&&hero.form==='wolf'?1.08:1)*(hero.overdriveTime > 0 ? 1.25 : 1);
-      hero.vx = approach(hero.vx, crouching ? 0 : dir * speed, dt * (hero.grounded ? 2800 : 1600));
-      if (hero.grounded) state(crouching ? 'crouch' : dir ? hero.runDirection ? 'run' : 'walk' : 'idle');
-      else state(hero.doublePose > 0 ? 'doublejump' : 'jump');
+      if (!isSpectator) {
+        if (dir && hero.doublePose <= 0) hero.facing = dir;
+        if (hero.runDirection && dir !== hero.runDirection) hero.runDirection = 0;
+        const speed = (hero.runDirection === dir && dir ? CONFIG.runSpeed : CONFIG.walkSpeed)*(selectedCharacter==='fenr'&&hero.form==='wolf'?1.08:1)*(hero.overdriveTime > 0 ? 1.25 : 1);
+        hero.vx = approach(hero.vx, crouching ? 0 : dir * speed, dt * (hero.grounded ? 2800 : 1600));
+        if (hero.grounded) state(crouching ? 'crouch' : dir ? hero.runDirection ? 'run' : 'walk' : 'idle');
+        else state(hero.doublePose > 0 ? 'doublejump' : 'jump');
+      } else {
+        updateHeroAI(dt);
+      }
     } else hero.vx = approach(hero.vx, 0, dt * 1900);
     if (hero.hurtTime > 0) { hero.hurtTime -= dt; state('hurt'); if (hero.hurtTime <= 0) hero.invuln = .9; }
-    if(hero.hp<=0) { hero.koTime=Math.max(0,hero.koTime-dt); state('down'); if(!hero.koTime&&match?.mode!=='versus') {hero.hp=BALANCE.heroMax;hero.invuln=.9;state(hero.grounded?'idle':'jump');} }
+    if(hero.hp<=0) { hero.koTime=Math.max(0,hero.koTime-dt); state('down'); if(!hero.koTime&&match?.mode!=='versus'&&match?.mode!=='spectator') {hero.hp=BALANCE.heroMax;hero.invuln=.9;state(hero.grounded?'idle':'jump');} }
     if (hero.action) {
       const a = hero.action; a.t += dt; state(a.name);
       if((selectedCharacter==='fenr'||selectedCharacter==='mira'||selectedCharacter==='haldor'||selectedCharacter==='isolde'||selectedCharacter==='solan'||selectedCharacter==='nib')&&a.dash&&a.t>a.duration*.2&&a.t<a.duration*.6)hero.vx=hero.facing*a.dash;
@@ -862,9 +878,9 @@
     if(F && !['down','recover'].includes(dummy.state) && hero.y>CONFIG.groundY-130 && dummy.y>CONFIG.groundY-130 && Math.abs(dummy.x-hero.x)<bodyGap())dummy.x=clamp(hero.x+(dummy.x>=hero.x?bodyGap():-bodyGap()),110,W-100);
     // Versus CPU follows the player's post-hurt immunity rule by difficulty, so a mashed chain cannot loop it forever.
     // Its stun lasts 0.5 s there, which still covers every 3-hit chain gap; the training dummy stays open for practice.
-    if (dummy.state === 'hurt' && dummy.stateTime > (F && aiEnabled && match?.mode === 'versus' ? .5 : .4)) { dummy.state = dummy.y < CONFIG.groundY ? 'jump' : 'idle'; dummy.stateTime = 0; if (F && aiEnabled && match?.mode === 'versus') dummy.invuln = Math.max(dummy.invuln, cpuProfile().immunity); }
+    if (dummy.state === 'hurt' && dummy.stateTime > (F && aiEnabled && (match?.mode === 'versus' || match?.mode === 'spectator') ? .5 : .4)) { dummy.state = dummy.y < CONFIG.groundY ? 'jump' : 'idle'; dummy.stateTime = 0; if (F && aiEnabled && (match?.mode === 'versus' || match?.mode === 'spectator')) dummy.invuln = Math.max(dummy.invuln, cpuProfile().immunity); }
     if (dummy.state !== 'down' && (dummy.y < CONFIG.groundY || dummy.vy < 0)) { dummy.vy += CONFIG.gravity * dt; dummy.y += dummy.vy * dt; if (dummy.y >= CONFIG.groundY) { dummy.y = CONFIG.groundY; dummy.vy = 0; dummy.jumps = 0; cpu.doubleAt = 0; if (dummy.state === 'jump') { dummy.state = 'idle'; dummy.stateTime = 0; } dust(dummy.x, 8); } }
-    if (dummy.state === 'down') { if (dummy.y < CONFIG.groundY || dummy.vy < 0) { dummy.vy += CONFIG.gravity * dt; dummy.y += dummy.vy * dt; if (dummy.y >= CONFIG.groundY) { dummy.y = CONFIG.groundY; dummy.vy = 0; dust(dummy.x, 24); trauma = Math.min(1, trauma + .3); } } if (dummy.stateTime > 1.7 && match?.mode!=='versus') { dummy.state = 'recover'; dummy.stateTime = 0; } }
+    if (dummy.state === 'down') { if (dummy.y < CONFIG.groundY || dummy.vy < 0) { dummy.vy += CONFIG.gravity * dt; dummy.y += dummy.vy * dt; if (dummy.y >= CONFIG.groundY) { dummy.y = CONFIG.groundY; dummy.vy = 0; dust(dummy.x, 24); trauma = Math.min(1, trauma + .3); } } if (dummy.stateTime > 1.7 && match?.mode!=='versus' && match?.mode!=='spectator') { dummy.state = 'recover'; dummy.stateTime = 0; } }
     if (dummy.state === 'recover' && dummy.stateTime > .4) { dummy.state = 'idle'; dummy.stateTime = 0; if(dummy.ko) dummy.damage = 0; dummy.ko=false; dummy.invuln = .5; }
     if(F)updateFenrAI(dt);
   }
@@ -1281,10 +1297,117 @@
       if ((m.projectile || dist <= cpuReach(m)) && cpuLands(m) && cpuStart(name)) return;
     }
   }
+  function sponsorFighterMove(target, slot) {
+    const isP1 = target === 'p1' || target === 1;
+    const actor = isP1 ? hero : dummy;
+    const charId = isP1 ? selectedCharacter : opponentCharacter;
+
+    if (actor.cooldowns) actor.cooldowns[slot] = 0;
+    if (slot === 'ultimate') {
+      if (charId === 'fenr' && actor.form !== 'human') {
+        actor.form = 'human';
+        if (isP1) syncPlayerForm();
+      }
+    }
+
+    const bannerColor = isP1 ? '#5cf4e5' : '#ff7b39';
+    const tag = isP1 ? 'P1' : 'P2';
+    const slotLabel = slot === 'ultimate' ? 'ULTIMATE' : slot === 'skill2' ? 'SKILL 2' : 'SKILL 1';
+
+    damageNumbers.push({
+      x: actor.x,
+      y: actor.y - 120,
+      text: `★ ${tag} SPONSOR: ${slotLabel}!`,
+      amount: 0,
+      fontSize: 22,
+      life: 1.6,
+      maxLife: 1.6,
+      color: bannerColor
+    });
+
+    spawnParticles(actor.x, actor.y - 65, bannerColor, 24, 260);
+    sound('cast');
+
+    if (isP1) {
+      cpuHero.plan = { kind: 'sponsored_burst', slot };
+      cpuHero.aiThink = 0;
+      if (canAct() && !hero.action) {
+        cast(slot);
+        cpuHero.plan = null;
+      }
+    } else {
+      cpu.plan = { kind: 'sponsored_burst', slot };
+      dummy.aiThink = 0;
+      if (!dummy.action && !['down', 'recover'].includes(dummy.state)) {
+        cpuStart(slot);
+        cpu.plan = null;
+      }
+    }
+    return true;
+  }
+
+  function updateHeroAI(dt) {
+    if (!aiEnabled || hero.hp <= 0) { hero.vx = approach(hero.vx, 0, dt * 1500); if (hero.grounded) state('idle'); return; }
+    const P = cpuProfile();
+    cpuHero.aiTime += dt; cpuHero.aiThink = Math.max(0, cpuHero.aiThink - dt);
+    if (['hurt', 'down'].includes(hero.state) || hero.hurtTime > 0) { cpuHero.plan = null; cpuHero.aiThink = Math.max(cpuHero.aiThink, P.reaction + P.wake); return; }
+
+    if (cpuHero.plan?.kind === 'sponsored_burst') {
+      const slot = cpuHero.plan.slot;
+      if (canAct() && !hero.action) {
+        if (cast(slot)) { cpuHero.plan = null; return; }
+      }
+    }
+
+    if (hero.action) return;
+
+    const dx = dummy.x - hero.x, dist = Math.abs(dx);
+    if (hero.doublePose <= 0) hero.facing = dx >= 0 ? 1 : -1;
+
+    if (cpuHero.aiThink <= 0) {
+      if (cpuHero.aiTime > P.ultimateAfter && hero.cooldowns.ultimate <= 0 && cast('ultimate')) {
+        cpuHero.aiThink = P.reaction;
+        return;
+      }
+      if (dist < 260 && hero.cooldowns.skill1 <= 0 && random() < P.aggression && cast('skill1')) {
+        cpuHero.aiThink = P.reaction;
+        return;
+      }
+      if (dist < 210 && hero.cooldowns.skill2 <= 0 && random() < P.aggression && cast('skill2')) {
+        cpuHero.aiThink = P.reaction;
+        return;
+      }
+      if (dist <= 130 && random() < P.aggression) {
+        if (startAttack(1)) {
+          cpuHero.aiThink = P.recovery;
+          return;
+        }
+      }
+    }
+
+    const goal = 95;
+    let wanted = 0;
+    if (dist > goal + 25) wanted = hero.facing * (dist > 300 ? CONFIG.runSpeed : CONFIG.walkSpeed);
+    else if (dist < goal - 25) wanted = -hero.facing * CONFIG.walkSpeed * 0.7;
+    else wanted = 0;
+
+    hero.vx = approach(hero.vx, wanted, dt * (hero.grounded ? 2600 : 1500));
+    if (hero.grounded) {
+      const next = Math.abs(hero.vx) > 10 ? (Math.abs(hero.vx) > 300 ? 'run' : 'walk') : 'idle';
+      state(next);
+    }
+  }
+
   function updateFenrAI(dt) {
     const P = cpuProfile();
     dummy.aiTime += dt; dummy.aiThink = Math.max(0, dummy.aiThink - dt);
     if (['hurt', 'down', 'recover'].includes(dummy.state)) { dummy.action = null; cpu.plan = null; dummy.aiThink = Math.max(dummy.aiThink, P.reaction + P.wake); return; }
+    if (cpu.plan?.kind === 'sponsored_burst') {
+      const slot = cpu.plan.slot;
+      if (!dummy.action && !['down', 'recover'].includes(dummy.state)) {
+        if (cpuStart(slot)) { cpu.plan = null; return; }
+      }
+    }
     if (dummy.action) {
       const a = dummy.action; a.t += dt; dummy.state = a.name;
       if (a.dash && a.t > a.duration * .2 && a.t < a.duration * .6) dummy.vx = dummy.facing * a.dash;
@@ -1541,7 +1664,7 @@
       else ctx.fillRect(Math.round(p.x),Math.round(p.y),size,size);
       ctx.restore();
     }
-    for (const n of damageNumbers) { ctx.save(); ctx.globalAlpha = Math.min(1, n.life * 2.5); ctx.font = `900 ${n.amount >= 30 ? 31 : 25}px Rajdhani`; ctx.textAlign = 'center'; ctx.lineWidth = 4; ctx.strokeStyle = '#254247'; ctx.strokeText(n.amount, Math.round(n.x), Math.round(n.y)); ctx.fillStyle = n.color; ctx.fillText(n.amount, Math.round(n.x), Math.round(n.y)); ctx.restore(); }
+    for (const n of damageNumbers) { ctx.save(); ctx.globalAlpha = Math.min(1, n.life * 2.5); ctx.font = `900 ${n.fontSize || (n.amount >= 30 ? 31 : 25)}px Rajdhani`; ctx.textAlign = 'center'; ctx.lineWidth = 4; ctx.strokeStyle = '#050a10'; const display = n.text !== undefined ? n.text : n.amount; ctx.strokeText(display, Math.round(n.x), Math.round(n.y)); ctx.fillStyle = n.color; ctx.fillText(display, Math.round(n.x), Math.round(n.y)); ctx.restore(); }
   }
   function drawSquadron(group = squad) {
     if (!group || !images.drone) return;
@@ -1685,9 +1808,9 @@
     $('#health-fill').style.width = `${h.front}%`; $('#health-reserve').style.width = `${h.reserve}%`; $('#health-label').textContent = `${hero.hp} / ${BALANCE.heroMax}`;
     $('#guard-fill').style.width = `${dh.front}%`; $('#guard-reserve').style.width = `${dh.reserve}%`; $('#guard-label').textContent = `HP ${currentDummyHP()} / ${BALANCE.dummyMax}`;
     $('#dummy-state').textContent = dummy.ko?'K.O.':({ idle: aiEnabled?'WATCHING':'PRACTICE', hurt: 'HIT CONFIRMED', down: 'DOWN', recover: 'RECOVERING' })[dummy.state] || (dummy.action?'ATTACKING':'APPROACHING');
-    $('#combo').classList.toggle('visible', comboHits > 0); $('#combo-count').textContent = comboHits; $('#combo-damage').textContent = `${comboDamage} DAMAGE`; $('#total-damage').innerHTML = `${totalDamage} <small>DMG</small>`;
-    $('#best-combo').innerHTML = `${bestCombo} <small>HITS</small>`;
-    $('#announcement').classList.toggle('visible', announceTimer > 0);
+    const cb=$('#combo');if(cb)cb.classList.toggle('visible', comboHits > 0);const cbc=$('#combo-count');if(cbc)cbc.textContent = comboHits;const cbd=$('#combo-damage');if(cbd)cbd.textContent = `${comboDamage} DAMAGE`;const td=$('#total-damage');if(td)td.innerHTML = `${totalDamage} <small>DMG</small>`;
+    const bc=$('#best-combo');if(bc)bc.innerHTML = `${bestCombo} <small>HITS</small>`;
+    const ann=$('#announcement');if(ann)ann.classList.toggle('visible', announceTimer > 0);
     for (const card of document.querySelectorAll('.skill-card')) {
       const name = card.dataset.action, cd = hero.cooldowns[name] || 0;
       card.classList.toggle('active', name === 'attack' ? hero.action?.type === 'attack' : name === 'ultimate' ? (!!squad || !!parade || !!flock || !!serpent || !!quake || !!finale || !!skyfall || !!orrery || !!sunroar || !!delivery || !!tortoise || (selectedCharacter==='fenr'&&(hero.form==='wolf'||hero.transformPending>0))) : hero.action?.type === name);
@@ -1724,20 +1847,27 @@
   window.addEventListener('keyup', e => { if (handled.has(e.key.toLowerCase())) { if(!/INPUT|TEXTAREA|SELECT|BUTTON/.test(e.target.tagName))e.preventDefault(); release(e.key); } });
   window.addEventListener('blur', clearInput); document.addEventListener('visibilitychange', () => { clearInput(); lastTime = 0; accumulator = 0;if(document.hidden)systemAnnouncer?.clear(); syncUltimateVoice(); syncMusic(); });
   window.addEventListener('resize', resize); canvas.addEventListener('pointerdown', () => { unlockAudio(); canvas.focus(); });
-  $('#pause-btn').onclick = () => { unlockAudio(); setPaused(!paused); }; $('#resume-btn').onclick = () => setPaused(false); $('#restart-btn').onclick = reset;
-  $('#back-menu').onclick = () => { location.href = 'monad-kombat.html'; };
-  $('#character-select').onchange=e=>selectCharacter(e.target.value);
-  $('#ai-toggle').onchange=e=>{aiEnabled=e.target.checked;dummy.action=null;dummy.vx=0;dummy.state='idle';};
-  $('#settings-btn').onclick = openSettings; $('#close-settings').onclick = closeSettings;
-  $('#settings-panel').addEventListener('cancel', e => { e.preventDefault(); closeSettings(); }); $('#pause-panel').addEventListener('cancel', e => { e.preventDefault(); setPaused(false); });
-  $('#hitbox-toggle').onchange = e => { hitboxes = e.target.checked; }; $('#sound-toggle').onchange = e => { unlockAudio(); muted = !e.target.checked; applyAudioMix(); };
-  $('#music-toggle').checked = musicOn; $('#music-slider').value = String(Math.round(musicVolume * 100)); $('#music-value').value = `${Math.round(musicVolume * 100)}%`;
-  $('#music-toggle').onchange = e => { unlockAudio(); musicOn = e.target.checked; prefs.set('blitzbound.music', musicOn ? '1' : '0'); syncMusic(); };
-  $('#music-slider').oninput = e => { unlockAudio(); musicVolume = clamp(Number(e.target.value) / 100, 0, 1); $('#music-value').value = `${e.target.value}%`; prefs.set('blitzbound.musicVolume', e.target.value); syncMusic(); };
-  $('#volume-slider').oninput = e => { unlockAudio(); volume = Number(e.target.value) / 100; $('#volume-value').value = `${e.target.value}%`; applyAudioMix(); };
-  $('#sound-test').onclick = () => { unlockAudio(); sound('heavy'); }; // Inside the mobile shell the shell owns fullscreen (it also locks landscape); on its own page the game toggles it itself.
+  const pb = $('#pause-btn'); if (pb) pb.onclick = () => { unlockAudio(); setPaused(!paused); };
+  const rb = $('#resume-btn'); if (rb) rb.onclick = () => setPaused(false);
+  const rst = $('#restart-btn'); if (rst) rst.onclick = reset;
+  const bm = $('#back-menu'); if (bm) bm.onclick = () => { location.href = 'monad-kombat.html'; };
+  const cs = $('#character-select'); if (cs) cs.onchange = e => selectCharacter(e.target.value);
+  const at = $('#ai-toggle'); if (at) at.onchange = e => { aiEnabled = e.target.checked; dummy.action = null; dummy.vx = 0; dummy.state = 'idle'; };
+  const sb = $('#settings-btn'); if (sb) sb.onclick = openSettings;
+  const csb = $('#close-settings'); if (csb) csb.onclick = closeSettings;
+  const sp = $('#settings-panel'); if (sp) sp.addEventListener('cancel', e => { e.preventDefault(); closeSettings(); });
+  const pp = $('#pause-panel'); if (pp) pp.addEventListener('cancel', e => { e.preventDefault(); setPaused(false); });
+  const ht = $('#hitbox-toggle'); if (ht) ht.onchange = e => { hitboxes = e.target.checked; };
+  const st = $('#sound-toggle'); if (st) st.onchange = e => { unlockAudio(); muted = !e.target.checked; applyAudioMix(); };
+  const mt = $('#music-toggle'); if (mt) mt.checked = musicOn;
+  const ms = $('#music-slider'); if (ms) ms.value = String(Math.round(musicVolume * 100));
+  const mv = $('#music-value'); if (mv) mv.value = `${Math.round(musicVolume * 100)}%`;
+  if (mt) mt.onchange = e => { unlockAudio(); musicOn = e.target.checked; prefs.set('blitzbound.music', musicOn ? '1' : '0'); syncMusic(); };
+  if (ms) ms.oninput = e => { unlockAudio(); musicVolume = clamp(Number(e.target.value) / 100, 0, 1); if (mv) mv.value = `${e.target.value}%`; prefs.set('blitzbound.musicVolume', e.target.value); syncMusic(); };
+  const vs = $('#volume-slider'); if (vs) vs.oninput = e => { unlockAudio(); volume = Number(e.target.value) / 100; const vv = $('#volume-value'); if (vv) vv.value = `${e.target.value}%`; applyAudioMix(); };
+  const stt = $('#sound-test'); if (stt) stt.onclick = () => { unlockAudio(); sound('heavy'); }; // Inside the mobile shell the shell owns fullscreen (it also locks landscape); on its own page the game toggles it itself.
   function toggleFullscreen() { if (window.parent !== window) { try { if (window.parent.blitzboundFullscreen) { window.parent.blitzboundFullscreen(); return; } } catch (_) {} window.parent.postMessage({ type: 'blitzbound-fullscreen' }, location.origin); return; } if (!document.fullscreenElement) document.documentElement.requestFullscreen?.().catch(() => {}); else document.exitFullscreen?.(); }
-  $('#fullscreen-btn').onclick = toggleFullscreen;
+  const fsb = $('#fullscreen-btn'); if (fsb) fsb.onclick = toggleFullscreen;
   for (const button of document.querySelectorAll('[data-action]')) button.onclick = () => { unlockAudio(); const name = button.dataset.action; if (name === 'attack') startAttack(); else cast(name); canvas.focus({ preventScroll: true }); };
   function tick(stamp) { if (lastTime) { const elapsed = Math.min((stamp - lastTime) / 1000, .1); fps += (1 / Math.max(elapsed, .001) - fps) * .05; if (!window.__game?.manual) { accumulator += elapsed; while (accumulator >= 1 / 120) { step(1 / 120); accumulator -= 1 / 120; } } } lastTime = stamp; draw(); requestAnimationFrame(tick); }
   // Deterministic QA interface: set manual=true, reset(), press/release(), advance(seconds).
@@ -1745,7 +1875,7 @@
   window.__game = { hero, dummy, config: CONFIG, balance:BALANCE, particles, effects, projectiles, pose: heroPose, press: key => press(key, true), release, input(key, down) { if (down) press(key); else release(key); }, reset, cast, jump, attack: startAttack, clearInput, draw, manual: false,
     advance(seconds) { for (let i = 0; i < Math.round(seconds * 120); i++) step(1 / 120); draw(); return this.snapshot(); },
     snapshot() { return { ready, paused, settingsOpen, menuOpen, selectedCharacter, opponentCharacter, difficulty, stageId, match:match?{...match}:null,roundCues:[...roundCues],aiEnabled, time, stepCount, hero: JSON.parse(JSON.stringify(hero)), dummy: { ...dummy }, healthBars:{hero:hpLayers(hero.hp),dummy:hpLayers(currentDummyHP())}, squad: squad ? JSON.parse(JSON.stringify(squad)) : null, enemySquad:enemySquad?JSON.parse(JSON.stringify(enemySquad)):null, parade: parade ? JSON.parse(JSON.stringify(parade)) : null, enemyParade: enemyParade ? JSON.parse(JSON.stringify(enemyParade)) : null, flock: flock ? JSON.parse(JSON.stringify(flock)) : null, enemyFlock: enemyFlock ? JSON.parse(JSON.stringify(enemyFlock)) : null, serpent: serpent ? JSON.parse(JSON.stringify(serpent)) : null, enemySerpent: enemySerpent ? JSON.parse(JSON.stringify(enemySerpent)) : null, quake: quake ? JSON.parse(JSON.stringify(quake)) : null, enemyQuake: enemyQuake ? JSON.parse(JSON.stringify(enemyQuake)) : null, finale: finale ? { ...finale } : null, enemyFinale: enemyFinale ? { ...enemyFinale } : null, skyfall: skyfall ? { ...skyfall } : null, enemySkyfall: enemySkyfall ? { ...enemySkyfall } : null, orrery: orrery ? { ...orrery } : null, enemyOrrery: enemyOrrery ? { ...enemyOrrery } : null, sunroar: sunroar ? { ...sunroar } : null, enemySunroar: enemySunroar ? { ...enemySunroar } : null, delivery: delivery ? { ...delivery } : null, enemyDelivery: enemyDelivery ? { ...enemyDelivery } : null, tortoise: tortoise ? { ...tortoise, spirit: undefined } : null, enemyTortoise: enemyTortoise ? { ...enemyTortoise, spirit: undefined } : null, playable: playable(), cutinVisible: !!squad && squad.t < SQUAD.cutinDuration, totalDamage, comboHits, comboDamage, hitstop, cinematic, trauma, projectileCount: projectiles.length, audioState: audio?.state || 'uninitialized', audioSources, stageLoaded: !!images.stage, spriteLoaded: !!images.hero, manifestLoaded: !!manifest }; },
-    startMatch,setMenuOpen,menuSound,openSettings,toggleFullscreen,music(){return music?{on:musicOn,volume:musicVolume,playing:!music.paused,src:MUSIC_PATH,element:music}:null;},onRoundCue(fn){roundAnnouncer=typeof fn==='function'?fn:null;},
+    startMatch,sponsor:sponsorFighterMove,sponsorFighterMove,setMenuOpen,menuSound,openSettings,toggleFullscreen,music(){return music?{on:musicOn,volume:musicVolume,playing:!music.paused,src:MUSIC_PATH,element:music}:null;},onRoundCue(fn){roundAnnouncer=typeof fn==='function'?fn:null;},
     announceSelection(id){return menuOpen&&playable().includes(id)?(systemAnnouncer?.play('select_'+id)||false):false;},
     stopAnnouncer(){systemAnnouncer?.clear();},announcerState(){return systemAnnouncer?.snapshot()||null;},
     selectCharacter, setAI(value){aiEnabled=!!value;dummy.action=null;dummy.vx=0;dummy.state='idle';}, opponentPose,
@@ -1759,8 +1889,7 @@
   Promise.resolve(window.BLITZBOUND_PRELOAD).then(() => Promise.all([loadImage('hero', 'assets/mecha/run/sprite-sheet-alpha.webp', true), loadImage('stage', 'assets/stage.webp', true), ...(Rules?Object.entries(Rules.stages).filter(([id])=>id!=='bellora').map(([id,s])=>loadImage('stage-'+id,s.image,true)):[]), ...(F?[loadImage('fenrHuman','assets/fenr/human/run/sprite-sheet-alpha.webp',true),loadImage('fenrWolf','assets/fenr/wolf/run/sprite-sheet-alpha.webp',true),...['claw','gale','rush','bite','howl','transform'].map(name=>loadImage('fx-'+name,'assets/fenr/ui/fx-'+name+'.webp',true))]:[]), ...(M?[loadImage('mira','assets/mira/run/sprite-sheet-alpha.webp',true),...['star','rocket','burst','crash'].map(name=>loadImage('fx-mira-'+name,'assets/mira/ui/fx-'+name+'.webp',true))]:[]), ...(C?[loadImage('cora','assets/cora/run/sprite-sheet-alpha.webp',true),...['feather','gust','raven'].map(name=>loadImage('fx-cora-'+name,'assets/cora/ui/fx-'+name+'.webp',true))]:[]), ...(N?[loadImage('naja','assets/naja/run/sprite-sheet-alpha.webp',true),...['sandwave','cyclone','serpent','ripple'].map(name=>loadImage('fx-naja-'+name,'assets/naja/ui/fx-'+name+'.webp',true))]:[]), ...(HD?[loadImage('haldor','assets/haldor/run/sprite-sheet-alpha.webp',true),...['slag','splash','steam','quake'].map(name=>loadImage('fx-haldor-'+name,'assets/haldor/ui/fx-'+name+'.webp',true))]:[]), ...(Z?[loadImage('zanni','assets/zanni/run/sprite-sheet-alpha.webp',true),...['ring','bigring','snatch','confetti'].map(name=>loadImage('fx-zanni-'+name,'assets/zanni/ui/fx-'+name+'.webp',true))]:[]), ...(IS?[loadImage('isolde','assets/isolde/run/sprite-sheet-alpha.webp',true),...['piercer','skyfall','shatter','frost'].map(name=>loadImage('fx-isolde-'+name,'assets/isolde/ui/fx-'+name+'.webp',true))]:[]), ...(RH?[loadImage('rhea','assets/rhea/run/sprite-sheet-alpha.webp',true),...['drift','planet','well','burst'].map(name=>loadImage('fx-rhea-'+name,'assets/rhea/ui/fx-'+name+'.webp',true))]:[]), ...(SO?[loadImage('solan','assets/solan/run/sprite-sheet-alpha.webp',true),...['crescent','roar','impact','sunburst'].map(name=>loadImage('fx-solan-'+name,'assets/solan/ui/fx-'+name+'.webp',true))]:[]), ...(NB?[loadImage('nib','assets/nib/run/sprite-sheet-alpha.webp',true),...['letter','plane','slip','stamp'].map(name=>loadImage('fx-nib-'+name,'assets/nib/ui/fx-'+name+'.webp',true))]:[]), ...(ED?[loadImage('edda','assets/edda/run/sprite-sheet-alpha.webp',true),...['stone','ripple','shell','tortoise','stomp'].map(name=>loadImage('fx-edda-'+name,'assets/edda/ui/fx-'+name+'.webp',true))]:[]), loadImage('drone', 'assets/ui/drone.png', true), loadImage('cutin', 'assets/ui/ultimate-cutin.webp', true)])).then(results => {
     images['stage-bellora']=images.stage;images.arco=images.hero;if(F)syncPlayerForm();
     ready = results.every(Boolean) && (!F || (!!window.FENR_HUMAN_MANIFEST && !!window.FENR_WOLF_MANIFEST)) && !!manifest && frames('idle').length > 0;
-    if (ready) { $('#load-state').classList.add('hidden'); announce('TRAINING READY', 1.65); }
-    else { $('#load-state').classList.add('error'); $('#load-message').textContent = 'Aset arena belum lengkap. Periksa atlas/manifest karakter, stage.webp, drone.png, dan ultimate-cutin.webp, lalu muat ulang.'; }
+    const ls=$('#load-state');if(ls){if (ready) { ls.classList.add('hidden'); announce('TRAINING READY', 1.65); } else { ls.classList.add('error'); const lm=$('#load-message'); if (lm) lm.textContent = 'Aset arena belum lengkap. Periksa atlas/manifest karakter, stage.webp, drone.png, dan ultimate-cutin.webp, lalu muat ulang.'; }}
     window.FrontEnd?.assetsReady(ready);
   });
 })();

@@ -6,12 +6,16 @@ import { saveResult, updateResultTxHash } from './results.js';
 import { recordMatchResult, sessionProfile, profileById } from './profile.js';
 import { recordMatchOnChain } from './onchain.js';
 
-type Options = { code: string; playerId?: string; token?: string; roster?: { playerId: string; username: string; team: 'A' | 'B' | null; fighterId: string | null }[] };
+type Options = { code: string; playerId?: string; token?: string; spectator?: boolean; roster?: { playerId: string; username: string; team: 'A' | 'B' | null; fighterId: string | null }[] };
 
 export class MatchRoom extends ColyseusRoom {
-  maxClients = 6;
+  maxClients = 50;
   private code = '';
   private players = new Map<string, string>();
+  private spectators = new Map<string, string>();
+  private hypeP1 = 0;
+  private hypeP2 = 0;
+  private roomSetup = { p1: 'arco', p2: 'fenr', level: 'medium', stage: 'bellora' };
   private reconnectTimers = new Map<string, ReturnType<typeof setTimeout>>();
   private readonly reconnectGraceMs = 8000;
   private initialized = false;
@@ -20,7 +24,14 @@ export class MatchRoom extends ColyseusRoom {
     try {
       this.code = options.code;
       console.log('[MATCH] create attempt', { code: this.code });
-      const roster = options.roster ?? matchRosterSnapshot(this.code) ?? matchRoster(this.code);
+      let roster = options.roster ?? matchRosterSnapshot(this.code);
+      if (!roster) {
+        try {
+          roster = matchRoster(this.code);
+        } catch (_) {
+          roster = [];
+        }
+      }
       createMatch(this.code, roster.map(player => ({ ...player, team: player.team as 'A' | 'B', fighterId: player.fighterId as string, x: 0, y: 0, hp: 100, connected: false, sequence: 0, attackReadyAt: 0, skillReadyAt: 0, ultimateReadyAt: 0, burstReadyAt: 0, attackFlashUntil: 0, lastHitAt: 0, eliminations: 0, animation: 'idle', animationUntil: 0 })));
     this.initialized = true;
     this.setPatchRate(1000 / 30);
@@ -43,6 +54,46 @@ export class MatchRoom extends ColyseusRoom {
       const playerId = this.players.get(client.sessionId);if (!playerId) return client.send('error', { error: 'player_not_registered' });
       this.reply(client, () => special(this.code, playerId, message.sequence, message.kind));
     });
+    this.onMessage('sponsor_action', (client, message: { target: 'p1' | 'p2'; skill: 'skill1' | 'skill2' | 'ultimate'; amount: number; sponsorName?: string }) => {
+      const target = message.target === 'p1' ? 'p1' : 'p2';
+      const amount = Number(message.amount) || 0;
+      if (target === 'p1') {
+        this.hypeP1 += amount;
+      } else {
+        this.hypeP2 += amount;
+      }
+      const totalHype = this.hypeP1 + this.hypeP2;
+      const pctP1 = totalHype > 0 ? Math.round((this.hypeP1 / totalHype) * 100) : 50;
+      const pctP2 = 100 - pctP1;
+
+      this.broadcast('sponsor_event', {
+        target: message.target,
+        skill: message.skill,
+        amount,
+        sponsorName: message.sponsorName || 'Spectator',
+        hypeP1: this.hypeP1,
+        hypeP2: this.hypeP2,
+        pctP1,
+        pctP2
+      });
+    });
+    this.onMessage('room_setup', (client, message: { p1: string; p2: string; level: string; stage: string }) => {
+      this.roomSetup = { ...this.roomSetup, ...message };
+      this.broadcast('room_setup', this.roomSetup);
+    });
+    this.onMessage('request_setup', (client) => {
+      client.send('room_setup', this.roomSetup);
+    });
+    this.onMessage('request_hype', (client) => {
+      const totalHype = this.hypeP1 + this.hypeP2;
+      const pctP1 = totalHype > 0 ? Math.round((this.hypeP1 / totalHype) * 100) : 50;
+      client.send('hype_update', {
+        hypeP1: this.hypeP1,
+        hypeP2: this.hypeP2,
+        pctP1,
+        pctP2: 100 - pctP1
+      });
+    });
     } catch (error) {
       console.error('[MATCH] onCreate failed', { code: this.code, error: error instanceof Error ? error.stack : error });
       throw error;
@@ -51,7 +102,22 @@ export class MatchRoom extends ColyseusRoom {
 
   onJoin(client: Client, options: Options) {
     if (!this.initialized) throw new Error('Match is still initializing');
-    console.log('[MATCH] join attempt', { code: this.code, playerId: options?.playerId, hasToken: Boolean(options?.token) });
+    console.log('[MATCH] join attempt', { code: this.code, playerId: options?.playerId, spectator: Boolean(options?.spectator), hasToken: Boolean(options?.token) });
+    
+    if (options?.spectator) {
+      const spectatorId = options?.playerId || `spectator_${client.sessionId.slice(0, 5)}`;
+      this.spectators.set(client.sessionId, spectatorId);
+      console.log('[MATCH] spectator joined', { code: this.code, spectatorId });
+      const totalHype = this.hypeP1 + this.hypeP2;
+      const pctP1 = totalHype > 0 ? Math.round((this.hypeP1 / totalHype) * 100) : 50;
+      client.send('hype_update', { hypeP1: this.hypeP1, hypeP2: this.hypeP2, pctP1, pctP2: 100 - pctP1 });
+      client.send('room_setup', this.roomSetup);
+      this.broadcast('spectator_count', { count: this.spectators.size });
+      const state = matchFor(this.code);
+      if (state) client.send('snapshot', state);
+      return;
+    }
+
     const playerId = options?.playerId;
     const profile = sessionProfile(options?.token);
     const rosterPlayer = matchRoster(this.code).find(player => player.playerId === playerId);
@@ -66,6 +132,11 @@ export class MatchRoom extends ColyseusRoom {
   }
 
   onLeave(client: Client) {
+    if (this.spectators.has(client.sessionId)) {
+      this.spectators.delete(client.sessionId);
+      this.broadcast('spectator_count', { count: this.spectators.size });
+      return;
+    }
     const playerId = this.players.get(client.sessionId);
     this.players.delete(client.sessionId);
     if (!playerId) return;

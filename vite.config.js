@@ -45,6 +45,8 @@ function copyStaticAssetsPlugin() {
         'style.css',
         'menu.css',
         'monad-kombat-theme.css',
+        'colyseus.js',
+        'spectator-web3.js',
         '.htaccess'
       ];
 
@@ -73,7 +75,8 @@ export default defineConfig({
         lobby: 'lobby.html',
         match: 'match.html',
         result: 'result.html',
-        mobile: 'mobile.html'
+        mobile: 'mobile.html',
+        aiArena: 'ai-arena.html'
       }
     }
   }

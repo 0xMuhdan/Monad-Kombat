@@ -20,9 +20,9 @@
     moonrise:{name:'Moonrise Bastion',short:'MOONRISE',subtitle:'BASTION',image:'assets/menu/moonrise.webp',groundY:618,tag:'Under the full moon',time:'FULL MOON NIGHT'}
   };
   function introTiming(m){const clips=window.ANNOUNCER_MANIFEST?.clips;m.fightAt=Math.max(1.05,(clips?.['round_'+m.round]?.duration||0)+.12);m.introDuration=Math.max(1.85,m.fightAt+(clips?.fight?.duration||0)+.10);}
-  function create(mode='training') {const m={mode,phase:mode==='versus'?'intro':'fight',round:1,playerWins:0,enemyWins:0,seconds:90,phaseTime:0,fightCue:false,lastWinner:null,winner:null,koDuration:2.2};introTiming(m);return m;}
+  function create(mode='training') {const isFight=mode==='versus'||mode==='spectator';const m={mode,phase:isFight?'intro':'fight',round:1,playerWins:0,enemyWins:0,seconds:90,phaseTime:0,fightCue:false,lastWinner:null,winner:null,koDuration:2.2};introTiming(m);return m;}
   function tick(m,dt,pHp,eHp) {
-    const events=[];if(m.mode!=='versus'||m.phase==='complete')return events;
+    const events=[];const isFight=m.mode==='versus'||m.mode==='spectator';if(!isFight||m.phase==='complete')return events;
     m.phaseTime+=dt;
     if(m.phase==='intro') {
       if(!m.fightCue && m.phaseTime>=m.fightAt){m.fightCue=true;events.push({type:'cue',cue:'fight',round:m.round});}
