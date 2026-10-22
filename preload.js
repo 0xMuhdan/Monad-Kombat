@@ -20,7 +20,7 @@
   }
   const secure = window.isSecureContext && 'caches' in window;
   if (secure && 'serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
-  const INDEX = '__aether-index';
+  const INDEX = '__monad-index';
 
   async function run() {
     const cache = secure ? await caches.open('blitzbound-assets').catch(() => null) : null;

@@ -18,7 +18,7 @@ You may:
 
 Under these terms:
 
-- **Attribution**: credit "AETHER CLASH by Bang Tutorial", link to this repository or to the [YouTube tutorial](https://www.youtube.com/watch?v=UN_0bNC2wTU), and say whether you made changes.
+- **Attribution**: credit "Blitzbound by Bang Tutorial", link to this repository or to the [YouTube tutorial](https://www.youtube.com/watch?v=UN_0bNC2wTU), and say whether you made changes.
 - **NonCommercial**: do not use the assets for commercial purposes. Selling them, putting them in a paid game or app, or using them in paid advertising all need written permission from Bang Tutorial.
 
 This summary is not the license itself. The full legal text is at <https://creativecommons.org/licenses/by-nc/4.0/legalcode>.

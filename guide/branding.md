@@ -5,7 +5,7 @@ Keputusan pengguna: identitas game harus umum, berpusat pada Mecha dan Demi-Huma
 - Nama game: **BLITZBOUND**.
 - Tema/subjudul: **MECHA VS DEMI-HUMAN**.
 - Tagline: **Two factions. One arena.**
-- Dunia: fantasi Renaisans yang ditenagai aether, tetap siang cerah. Mecha menggabungkan manusia dan teknologi; Demi-Human menggabungkan manusia dan hewan.
+- Dunia: fantasi Renaisans yang ditenagai energi cyber Monad, tetap siang cerah. Mecha menggabungkan manusia dan teknologi; Demi-Human menggabungkan manusia dan hewan.
 - Main menu/About membahas faksi, dunia, arena, dan roster terbuka. Jangan mengunci headline, footer, lore, atau key art pada dua karakter.
 - Nama/portrait ARCO, FENR, dan petarung berikutnya tetap digunakan dalam character select, HUD, kemampuan, cut-in, dan hasil pertandingan yang terkait dengan mereka.
 - Jangan mempromosikan jumlah karakter sementara sebagai janji tetap branding. Dua karakter saat ini adalah roster awal;12panel menyediakan ruang untuk penambahan berikutnya.

@@ -1,6 +1,6 @@
 # ISOLDE — ksatria kaki bangau
 
-ISOLDE adalah petarung Mecha kelima dan karakter kedelapan di roster: ksatria muda dengan prostetik kaki bangau perak dan tombak aether ramping. Ia berasal dari 8 karakter showcase dan dibuat playable setelah ZANNI. Pemain dapat memilihnya di roster VS/Training dan di Pengaturan → Karakter pemain; CPU memakai kit yang sama. Kartu identitas: assets/isolde/character.md.
+ISOLDE adalah petarung Mecha kelima dan karakter kedelapan di roster: ksatria muda dengan prostetik kaki bangau perak dan tombak cyber ramping. Ia berasal dari 8 karakter showcase dan dibuat playable setelah ZANNI. Pemain dapat memilihnya di roster VS/Training dan di Pengaturan → Karakter pemain; CPU memakai kit yang sama. Kartu identitas: assets/isolde/character.md.
 
 ## Dari showcase ke playable
 

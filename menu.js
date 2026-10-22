@@ -134,5 +134,5 @@
   });
   window.FrontEnd={syncBackground,home(){screen='home';game.setMenuOpen(true);render();},showResult(data){result=data;({player,enemy,stage,level,mode}=data);screen='result';game.setMenuOpen(true);render();},assetsReady(ok=true){if(game.snapshot().menuOpen){render();if(!ok){const status=root.querySelector('#menu-ready');if(status)status.textContent='ASSET ERROR · RELOAD REQUIRED';}}}};
   // First paint after the loading screen's download, so menu pictures come straight from the cache.
-  Promise.resolve(window.AETHER_PRELOAD).then(render);
+  Promise.resolve(window.BLITZBOUND_PRELOAD).then(render);
 })();

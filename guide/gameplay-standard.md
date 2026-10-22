@@ -66,7 +66,7 @@ Nilai berada di objek `BALANCE` pada game.js. Ini baseline demo; karakter baru b
 | Basic 1 | 6 | Tidak ada | 75 px/s | Pembuka kombo |
 | Basic 2 | 8 | Tidak ada | 100 px/s | Sambungan |
 | Basic 3 | 12 | Tidak ada | 180 px/s | Finisher; total kombo 26 |
-| I — Aether Bolt | 16 | 3 s | 140 px/s | Proyektil cepat, gerak bebas setelah peluru keluar |
+| I — Blitz Bolt | 16 | 3 s | 140 px/s | Proyektil cepat, gerak bebas setelah peluru keluar |
 | O — Seismic Drive | 24 | 6 s | 220 px/s | Hantaman area, radius damage 220 px |
 | P — Helios Squadron | 4×12 = 48 | 18 s | 45 px/s tiap hit awal; 190 pada hit terakhir | Summon mandiri, dapat dibarengi aksi pemain |
 

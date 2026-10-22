@@ -1,4 +1,4 @@
-/* Aether Arm front-end: arcade typography, opposing fighter art and roster panels. */
+/* Monad Kombat front-end: arcade typography, opposing fighter art and roster panels. */
 #front-menu{position:fixed;inset:0;z-index:20;overflow:auto;background:#0b1b25;color:#f6eedb;font-family:Rajdhani,Arial,sans-serif;isolation:isolate}
 #front-menu[hidden]{display:none}#front-menu[data-screen=home]{overflow:hidden}#front-menu button{font-family:inherit}#front-menu button:focus-visible,#front-menu a:focus-visible{outline:2px solid #fff0c5;outline-offset:4px}
 .in-menu .combat-header,.in-menu .match-actions,.in-menu .bottom-hud,.in-menu .combo-counter,.in-menu .form-timers,.in-menu #announcement,.in-menu #ultimate-cutin{visibility:hidden}
@@ -192,7 +192,7 @@ html.touch .home-top{padding-right:calc(4.5% + 50px)}
 @media(max-width:800px){.home-fighters{width:330px;height:290px;left:88%}.home-fighter{width:58%;height:88%}}
 @media(max-width:550px){.home-fighters{width:100%;height:200px;margin:10px 0 14px}.home-fighter{width:58%;height:88%}}
 
-/* Final Monad Kombat offline menu polish: remove legacy Aether styling. */
+/* Final Monad Kombat offline menu polish: cyberpunk styling. */
 #front-menu{background:#101311!important;color:#f2ead7!important}#front-menu[data-screen=home]{background:#101311!important}.home-art{background:linear-gradient(135deg,#101311,#202920 58%,#38251e)!important}.home-art:after{background:linear-gradient(0deg,#101311ee,transparent 40%,#10131144)!important}.menu-grain{opacity:.22!important;background:repeating-linear-gradient(0deg,transparent 0 5px,#d9e85b0b 6px 7px),repeating-linear-gradient(90deg,transparent 0 71px,#d9e85b08 72px 73px)!important}.home-top{border-bottom:1px solid #d9e85b44}.home-title h1{color:#f2ead7!important;text-shadow:5px 5px #080b08,0 0 22px #d9e85b22}.home-title h1 em{color:#d9e85b!important}.home-title p{color:#a8aa91!important}.home-nav button{border-color:#a8aa9155!important;border-left-color:#d9e85b!important;background:linear-gradient(135deg,#252c26e8,#1b211dea)!important;box-shadow:0 8px 22px #0008!important}.home-nav button:first-child{background:linear-gradient(135deg,#d9e85b,#a6b23e)!important;border-color:#f2f5be!important;color:#111511!important}.home-nav button:hover,.home-nav button:focus-visible{background:#d9e85b!important;color:#111511!important;border-color:#f2f5be!important}.home-nav button:hover small,.home-nav button:focus-visible small{color:#303815!important}.home-nav .nav-index{color:#d9e85b!important}.home-nav button:first-child .nav-index,.home-nav button:first-child small{color:#303815!important}.home-footer{color:#a8aa91!important}.home-footer>span:last-child{color:#d9e85b!important}.home-caption{display:none!important}
 
 /* Final responsive face-off spacing: closer on desktop, separated on mobile. */

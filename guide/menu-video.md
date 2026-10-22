@@ -1,6 +1,6 @@
 # Background video main menu
 
-Main menu memakai video loop dari **Higgsfield Seedance2.5,1080p**. Artwork faksi yang sama (`home-factions.png`, job `e0ac186a-ef20-4b0d-849c-c35d718e14c3`) dipakai sebagai start/end reference. Kamera tetap; banner dan partikel aether bergerak halus, tanpa karakter atau teks yang digenerate.
+Main menu memakai video loop dari **Higgsfield Seedance2.5,1080p**. Artwork faksi yang sama (`home-factions.png`, job `e0ac186a-ef20-4b0d-849c-c35d718e14c3`) dipakai sebagai start/end reference. Kamera tetap; banner dan partikel energi bergerak halus, tanpa karakter atau teks yang digenerate.
 
 ## File dan provenance
 
